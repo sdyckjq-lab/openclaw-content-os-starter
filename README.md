@@ -30,7 +30,12 @@
 
 ## 先看这个：一条命令安装
 
-前提：你已经装好 OpenClaw，并至少完成过一次 `openclaw onboard --install-daemon`。
+分两种情况：
+
+- 你已经装好 OpenClaw，但还没配 starter
+- 你已经装好 OpenClaw CLI，连第一次 `onboard` 都还没做
+
+这两种情况，现在都可以直接跑同一条安装命令。
 
 本地仓库安装：
 
@@ -38,15 +43,15 @@
 bash scripts/install.sh
 ```
 
-发布到 GitHub 后，可以把 README 换成真正的远程一键安装：
+GitHub 远程安装：
 
 ```bash
-OPENCLAW_CONTENT_OS_REPO=your-name/openclaw-content-os-starter \
-  bash <(curl -fsSL https://raw.githubusercontent.com/your-name/openclaw-content-os-starter/main/scripts/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
 ```
 
 这个安装器会自动做这些事：
 
+- 如果你还没有 `~/.openclaw/openclaw.json`，先自动跑一次官方 `openclaw onboard --non-interactive`
 - 创建 5 个 starter agents
 - 复制 5 个 workspace 模板
 - 复制内容目录模板
@@ -60,6 +65,51 @@ OPENCLAW_CONTENT_OS_REPO=your-name/openclaw-content-os-starter \
 - 不会替你开 Telegram
 - 不会覆盖你现有的自定义 agent
 - 不会偷偷删除你的配置
+
+## 小白第一次安装时会发生什么
+
+如果这是你的第一次安装，而且本机还没有 `openclaw.json`：
+
+1. 安装器会先问你要用哪家模型提供商
+2. 再问你 1 个 API key
+3. 它会把这个 key 保存到你本机私有的 `~/.openclaw/.env`
+4. 然后自动跑官方 onboarding
+5. 再继续安装 starter
+
+你不用自己手改大段 JSON。
+
+## 一个 API key 够不够
+
+够。
+
+默认设计就是：
+
+- 你先提供 1 个 API key
+- 先选 1 个默认模型
+- 5 个 starter agents 先共用它
+
+这样新手最容易跑起来。
+
+等你以后想升级，再单独给某几个 agent 指定不同模型。
+
+## 给高级用户的无人值守安装
+
+如果你不想在安装过程中手动输入，也可以提前把值放进环境变量：
+
+```bash
+OPENCLAW_CONTENT_OS_PROVIDER=openrouter \
+OPENROUTER_API_KEY="your-key" \
+bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
+```
+
+可选：你也可以额外指定默认模型：
+
+```bash
+OPENCLAW_CONTENT_OS_PROVIDER=openai \
+OPENAI_API_KEY="your-key" \
+OPENCLAW_CONTENT_OS_MODEL="openai/gpt-5.2" \
+bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
+```
 
 最简单的第一条消息：
 
@@ -80,7 +130,7 @@ OPENCLAW_CONTENT_OS_REPO=your-name/openclaw-content-os-starter \
 
 现在改成安装器优先之后，用户真正要做的只剩：
 
-1. 先装好 OpenClaw
+1. 先装好 OpenClaw CLI
 2. 跑一条安装命令
 3. 打开 Control UI 开始用
 

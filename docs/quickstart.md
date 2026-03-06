@@ -2,13 +2,13 @@
 
 这份 quickstart 只追求一件事：让你先用一条命令装好，再跑通一次。
 
-## 第 0 步：先装好 OpenClaw
+## 第 0 步：先装好 OpenClaw CLI
 
 按官方文档完成安装和初始化：
 
 1. 安装 OpenClaw
-2. 运行 `openclaw onboard --install-daemon`
-3. 确认 `openclaw gateway status` 正常
+2. 如果你已经跑过 `onboard`，很好
+3. 如果你还没跑过，也没关系，安装器现在会帮你补这一步
 
 官方文档：<https://docs.openclaw.ai/start/getting-started>
 
@@ -23,12 +23,12 @@ bash scripts/install.sh
 如果这个项目已经发布到 GitHub，可以用远程安装方式：
 
 ```bash
-OPENCLAW_CONTENT_OS_REPO=your-name/openclaw-content-os-starter \
-  bash <(curl -fsSL https://raw.githubusercontent.com/your-name/openclaw-content-os-starter/main/scripts/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
 ```
 
 ## 第 2 步：安装器会自动完成什么
 
+- 如果你还是第一次使用 OpenClaw，会先自动完成一次官方 onboarding
 - 创建 5 个 starter agents
 - 复制 workspace 模板
 - 复制本地内容目录模板
@@ -43,7 +43,28 @@ OPENCLAW_CONTENT_OS_REPO=your-name/openclaw-content-os-starter \
 - 不会自动帮你发布内容
 - 不会覆盖你现有的复杂自定义配置
 
-## 第 4 步：先走最简单入口
+## 第 4 步：第一次安装时怎么提供 API key
+
+如果你本机还没有 OpenClaw 配置，安装器会直接问你两件事：
+
+1. 你要用哪家模型提供商
+2. 你的 API key 是什么
+
+输入后，安装器会把 key 存到你本机私有的：
+
+- `~/.openclaw/.env`
+
+不会写进这个公开仓库。
+
+如果你不想在安装时手输，也可以提前这样写：
+
+```bash
+OPENCLAW_CONTENT_OS_PROVIDER=gemini \
+GEMINI_API_KEY="your-key" \
+bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
+```
+
+## 第 5 步：先走最简单入口
 
 用 Control UI，而不是先配 Bot。
 
@@ -57,7 +78,7 @@ openclaw dashboard
 请按这个 starter 的默认流程，帮我规划一篇内容，从素材整理开始。
 ```
 
-## 第 5 步：判断你是否成功
+## 第 6 步：判断你是否成功
 
 如果下面 3 件事都正常，就说明 starter 已经装好了：
 
@@ -88,6 +109,18 @@ openclaw dashboard
 ### 我没有 5 个模型
 
 也没关系。先让多个 agent 共用一个模型。
+
+### 一个 key 怎么给 5 个 agent 用
+
+默认不是“一人一把 key”。
+
+而是：
+
+- 1 个 key
+- 1 个默认模型
+- 5 个 agent 先共享
+
+等你以后更熟了，再给 `thinktank` 或 `tech` 单独换模型。
 
 ### 我不想一开始就开自动化
 
