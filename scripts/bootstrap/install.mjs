@@ -18,6 +18,7 @@ const sharedSkillsDir = join(openclawHome, 'skills');
 const configPath = join(openclawHome, 'openclaw.json');
 const globalEnvPath = join(openclawHome, '.env');
 const templateConfigPath = join(openclawHome, 'openclaw.content-os.template.json5');
+const localStarterRoot = join(openclawHome, 'content-os-starter');
 const requestedProvider = normalizeProviderChoice(getArgValue('--provider') || process.env.OPENCLAW_CONTENT_OS_PROVIDER || '');
 const requestedModel = getArgValue('--model') || process.env.OPENCLAW_CONTENT_OS_MODEL || '';
 const requestedApiKey = getArgValue('--api-key') || '';
@@ -377,6 +378,10 @@ function installSkills() {
   }
 }
 
+function installLocalHelperScripts() {
+  copyDirContents(join(repoRoot, 'scripts'), join(localStarterRoot, 'scripts'));
+}
+
 function installAgents() {
   const existingAgents = configGet('agents.list', []);
   const existingIds = new Set((existingAgents || []).map((item) => item.id));
@@ -464,6 +469,7 @@ function printSummary(setDefault, freshInstall, provider) {
   console.log('- shared starter skills in ~/.openclaw/skills');
   console.log(`- local content data in ${contentHome}`);
   console.log(`- config template in ${templateConfigPath}`);
+  console.log(`- local helper scripts in ${join(localStarterRoot, 'scripts')}`);
 
   console.log('\nWhat changed automatically:');
   console.log('- copied workspace templates');
@@ -485,6 +491,7 @@ function printSummary(setDefault, freshInstall, provider) {
   console.log('- advanced users can later override models per agent in openclaw.json');
 
   console.log('\nNext step:');
+  console.log(`- Verify install: bash ${join(localStarterRoot, 'scripts', 'check.sh')}`);
   if (gatewayStatus()) {
     console.log('- Open a NEW session in Control UI and switch to content-boss if needed');
   } else {
@@ -509,6 +516,7 @@ if (hadConfigBeforeInstall) {
 installWorkspaceTemplates();
 installContentTemplates();
 installSkills();
+installLocalHelperScripts();
 copyIfNeeded(join(repoRoot, 'templates', 'openclaw.json5.template'), templateConfigPath);
 
 const previousAgents = installAgents();
