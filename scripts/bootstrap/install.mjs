@@ -19,25 +19,58 @@ const configPath = join(openclawHome, 'openclaw.json');
 const globalEnvPath = join(openclawHome, '.env');
 const templateConfigPath = join(openclawHome, 'openclaw.content-os.template.json5');
 const localStarterRoot = join(openclawHome, 'content-os-starter');
-const requestedProvider = normalizeProviderChoice(getArgValue('--provider') || process.env.OPENCLAW_CONTENT_OS_PROVIDER || '');
 const requestedModel = getArgValue('--model') || process.env.OPENCLAW_CONTENT_OS_MODEL || '';
 const requestedApiKey = getArgValue('--api-key') || '';
+const requestedCustomBaseUrl = getArgValue('--custom-base-url') || process.env.OPENCLAW_CONTENT_OS_CUSTOM_BASE_URL || '';
+const requestedCustomModelId = getArgValue('--custom-model-id') || process.env.OPENCLAW_CONTENT_OS_CUSTOM_MODEL_ID || '';
+const requestedCustomCompatibility = normalizeCustomCompatibility(getArgValue('--custom-compatibility') || process.env.OPENCLAW_CONTENT_OS_CUSTOM_COMPATIBILITY || '');
 const interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY);
 
 const providerChoices = {
+  minimax: {
+    key: 'minimax',
+    label: 'MiniMax',
+    authChoice: 'minimax-api-key',
+    envName: 'MINIMAX_API_KEY',
+    exampleModel: 'minimax/MiniMax-M2.5',
+    group: 'recommended',
+    summary: '国内用户常用，官方支持 API key 与 Portal 两种路径',
+  },
+  moonshot: {
+    key: 'moonshot',
+    label: 'Moonshot / Kimi',
+    authChoice: 'moonshot-api-key',
+    envName: 'MOONSHOT_API_KEY',
+    exampleModel: 'moonshot/kimi-k2.5',
+    group: 'recommended',
+    summary: 'Kimi API 路线，适合直接输 key',
+  },
+  zai: {
+    key: 'zai',
+    label: 'Z.AI / GLM',
+    authChoice: 'zai-api-key',
+    envName: 'ZAI_API_KEY',
+    exampleModel: 'zai/glm-5',
+    group: 'recommended',
+    summary: 'GLM 路线，官方直接支持 zai-api-key',
+  },
+  openrouter: {
+    key: 'openrouter',
+    label: 'OpenRouter',
+    authChoice: 'openrouter-api-key',
+    envName: 'OPENROUTER_API_KEY',
+    exampleModel: 'openrouter/openai/gpt-4.1-mini',
+    group: 'recommended',
+    summary: '一个 key 聚合多个模型，适合想先跑通的人',
+  },
   openai: {
     key: 'openai',
     label: 'OpenAI',
     authChoice: 'openai-api-key',
     envName: 'OPENAI_API_KEY',
     exampleModel: 'openai/gpt-5.2',
-  },
-  anthropic: {
-    key: 'anthropic',
-    label: 'Anthropic',
-    authChoice: 'anthropic-api-key',
-    envName: 'ANTHROPIC_API_KEY',
-    exampleModel: 'anthropic/claude-sonnet-4-5',
+    group: 'more',
+    summary: '国际常用模型提供商',
   },
   gemini: {
     key: 'gemini',
@@ -46,15 +79,30 @@ const providerChoices = {
     envName: 'GEMINI_API_KEY',
     exampleModel: 'google/gemini-3-pro-preview',
     aliases: ['google'],
+    group: 'more',
+    summary: '国际常用，适合 Google 生态用户',
   },
-  openrouter: {
-    key: 'openrouter',
-    label: 'OpenRouter',
-    authChoice: 'openrouter-api-key',
-    envName: 'OPENROUTER_API_KEY',
-    exampleModel: 'openrouter/openai/gpt-4.1-mini',
+  anthropic: {
+    key: 'anthropic',
+    label: 'Anthropic',
+    authChoice: 'anthropic-api-key',
+    envName: 'ANTHROPIC_API_KEY',
+    exampleModel: 'anthropic/claude-sonnet-4-5',
+    group: 'more',
+    summary: '国际常用，强推理与长上下文',
+  },
+  custom: {
+    key: 'custom',
+    label: 'Custom API',
+    authChoice: 'custom-api-key',
+    envName: 'CUSTOM_API_KEY',
+    exampleModel: 'starter-custom/your-model',
+    group: 'custom',
+    summary: '自定义 OpenAI / Anthropic 兼容接口',
   },
 };
+
+const requestedProvider = normalizeProviderChoice(getArgValue('--provider') || process.env.OPENCLAW_CONTENT_OS_PROVIDER || '');
 
 const starterAgents = [
   { id: 'content-boss', role: 'boss', workspace: join(openclawHome, 'workspace-content-os-boss') },
@@ -107,6 +155,12 @@ function normalizeProviderChoice(value) {
     if ((provider.aliases || []).includes(normalized)) return provider.key;
   }
   return normalized;
+}
+
+function normalizeCustomCompatibility(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (normalized === 'anthropic') return 'anthropic';
+  return 'openai';
 }
 
 function configGet(path, fallback = undefined) {
@@ -221,18 +275,29 @@ function detectProviderFromEnvironment() {
 async function chooseProviderInteractively() {
   console.log('\n这是第一次安装 OpenClaw Content OS Starter。');
   console.log('你只需要先准备 1 个 API key。5 个 agent 默认会先共用同一个模型。\n');
-  console.log('请选择你现在最想用的模型提供商：');
-  console.log('1. OpenAI');
-  console.log('2. Anthropic');
-  console.log('3. Google Gemini');
+  console.log('推荐提供商（中国用户优先，先跑通最重要）：');
+  console.log('1. MiniMax');
+  console.log('2. Moonshot / Kimi API');
+  console.log('3. Z.AI / GLM');
   console.log('4. OpenRouter');
+  console.log('\n更多提供商（国际常用）：');
+  console.log('5. OpenAI');
+  console.log('6. Google Gemini');
+  console.log('7. Anthropic');
+  console.log('\n自定义接入：');
+  console.log('8. Custom API（OpenAI / Anthropic 兼容接口）');
+  console.log('\n说明：Qwen Portal、MiniMax Portal 这类官方 OAuth 登录流，先装完 starter 后再按官方文档补登录，会更稳。');
 
   while (true) {
-    const answer = await promptText('输入 1 / 2 / 3 / 4: ');
-    if (answer === '1') return 'openai';
-    if (answer === '2') return 'anthropic';
-    if (answer === '3') return 'gemini';
+    const answer = await promptText('输入 1 / 2 / 3 / 4 / 5 / 6 / 7 / 8: ');
+    if (answer === '1') return 'minimax';
+    if (answer === '2') return 'moonshot';
+    if (answer === '3') return 'zai';
     if (answer === '4') return 'openrouter';
+    if (answer === '5') return 'openai';
+    if (answer === '6') return 'gemini';
+    if (answer === '7') return 'anthropic';
+    if (answer === '8') return 'custom';
     console.log('输入无效，请重新输入。');
   }
 }
@@ -241,10 +306,97 @@ function printFreshInstallHelp() {
   console.error('Fresh-machine setup needs one provider and one API key.');
   console.error('For beginners, just rerun this installer in a normal terminal and follow the prompts.');
   console.error('For unattended install, use one of these examples:');
-  console.error('  OPENCLAW_CONTENT_OS_PROVIDER=openai OPENAI_API_KEY=your_key bash scripts/install.sh');
-  console.error('  OPENCLAW_CONTENT_OS_PROVIDER=anthropic ANTHROPIC_API_KEY=your_key bash scripts/install.sh');
-  console.error('  OPENCLAW_CONTENT_OS_PROVIDER=gemini GEMINI_API_KEY=your_key bash scripts/install.sh');
+  console.error('  OPENCLAW_CONTENT_OS_PROVIDER=minimax MINIMAX_API_KEY=your_key bash scripts/install.sh');
+  console.error('  OPENCLAW_CONTENT_OS_PROVIDER=moonshot MOONSHOT_API_KEY=your_key bash scripts/install.sh');
+  console.error('  OPENCLAW_CONTENT_OS_PROVIDER=zai ZAI_API_KEY=your_key bash scripts/install.sh');
   console.error('  OPENCLAW_CONTENT_OS_PROVIDER=openrouter OPENROUTER_API_KEY=your_key bash scripts/install.sh');
+  console.error('  OPENCLAW_CONTENT_OS_PROVIDER=openai OPENAI_API_KEY=your_key bash scripts/install.sh');
+  console.error('  OPENCLAW_CONTENT_OS_PROVIDER=custom CUSTOM_API_KEY=your_key OPENCLAW_CONTENT_OS_CUSTOM_BASE_URL=https://llm.example.com/v1 OPENCLAW_CONTENT_OS_CUSTOM_MODEL_ID=foo-large bash scripts/install.sh');
+  console.error('Official OAuth login flows such as qwen-portal or minimax-portal are documented by OpenClaw, but they are not part of this starter\'s one-key path.');
+}
+
+async function collectProviderSettings(provider) {
+  let apiKey = requestedApiKey || process.env[provider.envName] || '';
+  if (!apiKey && provider.key === 'gemini') {
+    apiKey = process.env.GOOGLE_API_KEY || '';
+  }
+
+  let customBaseUrl = requestedCustomBaseUrl;
+  let customModelId = requestedCustomModelId;
+  let customCompatibility = requestedCustomCompatibility;
+
+  if (provider.key === 'custom') {
+    if (!customBaseUrl && interactive) {
+      customBaseUrl = await promptText('请输入自定义接口 Base URL，例如 https://llm.example.com/v1: ');
+    }
+    if (!customModelId && interactive) {
+      customModelId = await promptText('请输入默认模型 ID，例如 foo-large: ');
+    }
+    if (!requestedCustomCompatibility && interactive) {
+      const answer = await promptText('接口兼容类型是 openai 还是 anthropic？默认 openai，直接回车即可: ');
+      customCompatibility = normalizeCustomCompatibility(answer);
+    }
+  }
+
+  if (!apiKey) {
+    if (!interactive) {
+      printFreshInstallHelp();
+      process.exit(1);
+    }
+    apiKey = await promptSecret(`请输入 ${provider.label} 的 API key: `);
+  }
+
+  if (!apiKey) {
+    console.error('API key 不能为空。');
+    process.exit(1);
+  }
+
+  if (provider.key === 'custom') {
+    if (!customBaseUrl || !customModelId) {
+      console.error('Custom API 需要 Base URL 和模型 ID。');
+      process.exit(1);
+    }
+  }
+
+  return {
+    apiKey,
+    customBaseUrl,
+    customModelId,
+    customCompatibility,
+  };
+}
+
+function buildOnboardArgs(provider, settings) {
+  const args = [
+    'onboard',
+    '--non-interactive',
+    '--accept-risk',
+    '--flow',
+    'quickstart',
+    '--mode',
+    'local',
+    '--auth-choice',
+    provider.authChoice,
+    '--secret-input-mode',
+    'ref',
+    '--gateway-bind',
+    'loopback',
+    '--install-daemon',
+    '--daemon-runtime',
+    'node',
+    '--skip-channels',
+    '--skip-skills',
+    '--skip-ui',
+  ];
+
+  if (provider.key === 'custom') {
+    args.push('--custom-base-url', settings.customBaseUrl);
+    args.push('--custom-model-id', settings.customModelId);
+    args.push('--custom-compatibility', settings.customCompatibility);
+    args.push('--custom-provider-id', 'starter-custom');
+  }
+
+  return args;
 }
 
 async function ensureFreshMachineOnboard() {
@@ -268,52 +420,18 @@ async function ensureFreshMachineOnboard() {
     process.exit(1);
   }
 
-  let apiKey = requestedApiKey || process.env[provider.envName] || '';
-  if (!apiKey && provider.key === 'gemini') {
-    apiKey = process.env.GOOGLE_API_KEY || '';
-  }
+  const settings = await collectProviderSettings(provider);
 
-  if (!apiKey) {
-    if (!interactive) {
-      printFreshInstallHelp();
-      process.exit(1);
-    }
-    apiKey = await promptSecret(`请输入 ${provider.label} 的 API key: `);
-  }
-
-  if (!apiKey) {
-    console.error('API key 不能为空。');
-    process.exit(1);
-  }
-
-  process.env[provider.envName] = apiKey;
-  upsertEnvValue(provider.envName, apiKey);
+  process.env[provider.envName] = settings.apiKey;
+  upsertEnvValue(provider.envName, settings.apiKey);
 
   console.log('\nNo existing OpenClaw config found. Running first-time onboarding automatically...');
-  runOpenClaw([
-    'onboard',
-    '--non-interactive',
-    '--accept-risk',
-    '--flow',
-    'quickstart',
-    '--mode',
-    'local',
-    '--auth-choice',
-    provider.authChoice,
-    '--secret-input-mode',
-    'ref',
-    '--gateway-bind',
-    'loopback',
-    '--install-daemon',
-    '--daemon-runtime',
-    'node',
-    '--skip-channels',
-    '--skip-skills',
-    '--skip-ui',
-  ]);
+  runOpenClaw(buildOnboardArgs(provider, settings));
 
-  if (requestedModel) {
-    runOpenClaw(['models', 'set', requestedModel]);
+  const providerDefaultModel = provider.key === 'custom' ? `starter-custom/${settings.customModelId}` : '';
+  const preferredModel = requestedModel || providerDefaultModel;
+  if (preferredModel) {
+    runOpenClaw(['models', 'set', preferredModel]);
   }
 
   return { bootstrapped: true, provider };
