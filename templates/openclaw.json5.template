@@ -1,0 +1,74 @@
+// Copy only the sections you need into ~/.openclaw/openclaw.json.
+// This is a sanitized starter template.
+
+{
+  agents: {
+    list: [
+      {
+        id: "content-boss",
+        default: true,
+        name: "Content Boss",
+        workspace: "~/.openclaw/workspace-content-os-boss",
+        agentDir: "~/.openclaw/agents/content-boss/agent",
+        // Optional model override:
+        // model: { primary: "your-provider/your-model" },
+      },
+      {
+        id: "content-material",
+        name: "Content Material",
+        workspace: "~/.openclaw/workspace-content-os-material",
+        agentDir: "~/.openclaw/agents/content-material/agent",
+      },
+      {
+        id: "content-creator",
+        name: "Content Creator",
+        workspace: "~/.openclaw/workspace-content-os-creator",
+        agentDir: "~/.openclaw/agents/content-creator/agent",
+      },
+      {
+        id: "content-thinktank",
+        name: "Content Thinktank",
+        workspace: "~/.openclaw/workspace-content-os-thinktank",
+        agentDir: "~/.openclaw/agents/content-thinktank/agent",
+      },
+      {
+        id: "content-tech",
+        name: "Content Tech",
+        workspace: "~/.openclaw/workspace-content-os-tech",
+        agentDir: "~/.openclaw/agents/content-tech/agent",
+      },
+    ],
+  },
+
+  tools: {
+    agentToAgent: {
+      enabled: true,
+      allow: [
+        "content-boss",
+        "content-material",
+        "content-creator",
+        "content-thinktank",
+        "content-tech",
+      ],
+    },
+  },
+
+  // Optional: one single Telegram entry that routes to the boss only.
+  // Start without this if you are a beginner.
+  // bindings: [
+  //   {
+  //     agentId: "content-boss",
+  //     match: { channel: "telegram", accountId: "main" },
+  //   },
+  // ],
+  // channels: {
+  //   telegram: {
+  //     accounts: {
+  //       main: {
+  //         botToken: "${TELEGRAM_BOT_TOKEN}",
+  //         dmPolicy: "pairing",
+  //       },
+  //     },
+  //   },
+  // },
+}

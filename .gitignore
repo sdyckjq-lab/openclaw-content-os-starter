@@ -1,0 +1,45 @@
+# Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.secret
+
+# Local OpenClaw config copies
+openclaw.json
+openclaw.local.json5
+openclaw.content-os.local.json5
+
+# Local user context
+USER.md
+*/USER.md
+**/USER.md
+MEMORY.md
+memory/
+
+# Generated content
+local-data/
+generated/
+draft-output/
+
+# Logs and temp
+*.log
+logs/
+tmp/
+temp/
+.tmp/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python / Node
+__pycache__/
+*.pyc
+node_modules/
