@@ -51,6 +51,13 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 1. 你要用哪家模型提供商
 2. 你的 API key 是什么
 
+现在 provider 菜单已经把中文用户更常用的路线放前面了：
+
+- `MiniMax`
+- `Moonshot / Kimi API`
+- `Z.AI / GLM`
+- `OpenRouter`
+
 输入后，安装器会把 key 存到你本机私有的：
 
 - `~/.openclaw/.env`
@@ -60,8 +67,18 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 如果你不想在安装时手输，也可以提前这样写：
 
 ```bash
-OPENCLAW_CONTENT_OS_PROVIDER=gemini \
-GEMINI_API_KEY="your-key" \
+OPENCLAW_CONTENT_OS_PROVIDER=minimax \
+MINIMAX_API_KEY="your-key" \
+bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
+```
+
+如果你要用自定义兼容接口：
+
+```bash
+OPENCLAW_CONTENT_OS_PROVIDER=custom \
+CUSTOM_API_KEY="your-key" \
+OPENCLAW_CONTENT_OS_CUSTOM_BASE_URL="https://llm.example.com/v1" \
+OPENCLAW_CONTENT_OS_CUSTOM_MODEL_ID="foo-large" \
 bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
 ```
 
@@ -139,6 +156,35 @@ openclaw dashboard
 - 5 个 agent 先共享
 
 等你以后更熟了，再给 `thinktank` 或 `tech` 单独换模型。
+
+### 我已经有一个 agent 和模型了，还需要给 5 个 starter agent 单独再配一次吗
+
+大多数情况下，不需要。
+
+如果你现在已经有：
+
+- 一个能正常聊天的 OpenClaw agent
+- 一个已经配置好的全局默认模型
+
+那 starter 新加的 5 个 agent 通常可以直接继承这个默认模型。
+
+只有在这些情况下，你才可能需要额外动作：
+
+- 你原来用的是按 agent 隔离的登录态
+- 你想让某个 starter agent 单独用不同模型
+
+如果你原来用的是 API key + `.env` 路线，一般最省事。
+
+### 那 Qwen Portal、MiniMax Portal 这类官方登录流怎么办
+
+OpenClaw 官方支持它们。
+
+但它们不属于“输入 key 回车”的默认路径，所以 starter 安装器没有把它们放进第一层菜单。
+
+建议顺序是：
+
+1. 先用 API key 路线把 starter 装好
+2. 再按官方文档接 Portal / OAuth 登录流
 
 ### 我不想一开始就开自动化
 

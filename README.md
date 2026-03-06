@@ -83,6 +83,29 @@ Windows:
 
 如果有问题，它会直接告诉你缺哪一项。
 
+## Reuse Existing Models
+
+如果你已经在 OpenClaw 里跑通了一个 agent 和一个模型，这个 starter 默认不要求你再给 5 个 agent 逐个配模型。
+
+默认规则是：
+
+- 新增 starter agents 先继承全局默认模型
+- 只有你想让某个 agent 更强、更便宜、或更偏代码时，才单独覆盖
+
+你可以把它理解成两层：
+
+- 全局共享：`agents.defaults.model`
+- 单 agent 覆盖：`agents.list[].model`
+
+这意味着大多数老用户都可以直接复用现有默认模型。
+
+只有一种情况你需要额外留意：
+
+- 如果你现在用的是某些按 agent 隔离的登录态或 auth profile
+- 新 agent 可能还要补一次认证
+
+如果你当前用的是 API key + `.env` 方式，通常最省心，也最适合这个 starter。
+
 这个安装器会自动做这些事：
 
 - 如果你还没有 `~/.openclaw/openclaw.json`，先自动跑一次官方 `openclaw onboard --non-interactive`
@@ -112,6 +135,33 @@ Windows:
 
 你不用自己手改大段 JSON。
 
+## Recommended Providers For Chinese Users
+
+这个 starter 现在把 provider 菜单改成了更适合中文用户的顺序。
+
+推荐优先顺序：
+
+1. `MiniMax`
+2. `Moonshot / Kimi API`
+3. `Z.AI / GLM`
+4. `OpenRouter`
+
+这些都比较适合“选一个 provider -> 输入一个 key -> 直接开跑”的路径。
+
+另外，OpenClaw 官方还支持一些不是“输入 key 回车”形态的登录流，比如：
+
+- `Qwen Portal`
+- `MiniMax Portal`
+
+这类更适合放在 starter 装好之后再接，因为它们属于 OAuth / Portal 登录路径，不是默认的一键 key 流。
+
+官方文档：
+
+- <https://docs.openclaw.ai/providers/minimax>
+- <https://docs.openclaw.ai/providers/moonshot>
+- <https://docs.openclaw.ai/providers/zai>
+- <https://docs.openclaw.ai/providers/qwen>
+
 ## Beginner Mental Model
 
 够。
@@ -128,7 +178,29 @@ Windows:
 
 ## Unattended Install
 
-如果你不想在安装过程中手动输入，也可以提前把值放进环境变量：
+如果你不想在安装过程中手动输入，也可以提前把值放进环境变量。
+
+国内用户更推荐从这些例子开始：
+
+```bash
+OPENCLAW_CONTENT_OS_PROVIDER=minimax \
+MINIMAX_API_KEY="your-key" \
+bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
+```
+
+```bash
+OPENCLAW_CONTENT_OS_PROVIDER=moonshot \
+MOONSHOT_API_KEY="your-key" \
+bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
+```
+
+```bash
+OPENCLAW_CONTENT_OS_PROVIDER=zai \
+ZAI_API_KEY="your-key" \
+bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
+```
+
+如果你更喜欢聚合路由，再用这个：
 
 ```bash
 OPENCLAW_CONTENT_OS_PROVIDER=openrouter \
@@ -142,6 +214,16 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 OPENCLAW_CONTENT_OS_PROVIDER=openai \
 OPENAI_API_KEY="your-key" \
 OPENCLAW_CONTENT_OS_MODEL="openai/gpt-5.2" \
+bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
+```
+
+如果你要接入自定义兼容接口，也支持：
+
+```bash
+OPENCLAW_CONTENT_OS_PROVIDER=custom \
+CUSTOM_API_KEY="your-key" \
+OPENCLAW_CONTENT_OS_CUSTOM_BASE_URL="https://llm.example.com/v1" \
+OPENCLAW_CONTENT_OS_CUSTOM_MODEL_ID="foo-large" \
 bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
 ```
 
