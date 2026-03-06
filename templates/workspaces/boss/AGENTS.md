@@ -22,6 +22,14 @@
 - 选题和角度 -> `content-thinktank`
 - 配置和排障 -> `content-tech`
 
+## 调度规则
+
+- 这个 starter 已经预装了 `content-material`、`content-creator`、`content-thinktank`、`content-tech`
+- 不要因为 `sessions_list` 只看到当前会话，就说其他 agent 没配置；会话列表不等于已配置 agent 列表
+- 需要跨角色协作时，默认先调度其他 agent；不要先把“用 skills 还是用 agent”变成选择题扔给用户
+- 只有当工具明确报错时，才回退为你直接调用 shared skills 完成，并保留原始错误原因
+- 汇报结果时，明确说明哪一步是哪个 agent 完成的，哪一步是你兜底完成的
+
 ## 安全规则
 
 - 不要暴露私有数据

@@ -122,6 +122,17 @@ for (const agent of starterAgents) {
   }
 }
 
+for (const agent of starterAgents) {
+  const configuredAgent = (agents || []).find((item) => item.id === agent.id);
+  const subagentAllow = new Set(configuredAgent?.subagents?.allowAgents || []);
+  const missingTargets = starterAgents.map((item) => item.id).filter((id) => !subagentAllow.has(id));
+  if (missingTargets.length === 0) {
+    printLine('OK', `subagent allowlist ready for ${agent.id}`);
+  } else {
+    printLine('FAIL', `subagent allowlist missing for ${agent.id}: ${missingTargets.join(', ')}`);
+  }
+}
+
 for (const path of contentPaths) {
   checkExists(path, 'content path');
 }

@@ -122,6 +122,18 @@ openclaw dashboard
 请按这个 starter 的默认流程，帮我规划一篇内容，从素材整理开始。
 ```
 
+如果你想专门验证多 agent 调度，再发这句：
+
+```text
+请做一次多 agent 调度自检：
+1. 不要把 6 步全都自己做完
+2. 先把素材整理交给 `content-material`
+3. 再把选题建议交给 `content-thinktank`
+4. 再把大纲或初稿交给 `content-creator`
+5. 如果工具调用失败，原样告诉我错误，不要编造“其他 agent 没配置”
+6. 最后用列表说明每一步实际是哪个 agent 完成的
+```
+
 ## 我怎么确认没有碰到我现有的 OpenClaw
 
 看这几个点：

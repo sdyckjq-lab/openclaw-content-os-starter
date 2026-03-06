@@ -15,7 +15,8 @@ const force = process.argv.includes('--force') || process.env.FORCE === '1';
 const openclawHome = process.env.OPENCLAW_HOME || join(homedir(), '.openclaw');
 const contentHome = process.env.CONTENT_OS_HOME || join(homedir(), 'Documents', 'openclaw-content-os-data');
 const sharedSkillsDir = join(openclawHome, 'skills');
-const configPath = join(openclawHome, 'openclaw.json');
+const directConfigPath = join(openclawHome, 'openclaw.json');
+const sandboxConfigPath = join(openclawHome, '.openclaw', 'openclaw.json');
 const globalEnvPath = join(openclawHome, '.env');
 const templateConfigPath = join(openclawHome, 'openclaw.content-os.template.json5');
 const localStarterRoot = join(openclawHome, 'content-os-starter');
@@ -177,6 +178,15 @@ function configGet(path, fallback = undefined) {
 
 function configSet(path, value) {
   runOpenClaw(['config', 'set', path, JSON.stringify(value), '--strict-json']);
+}
+
+function configUnset(path) {
+  runOpenClaw(['config', 'unset', path]);
+}
+
+function getConfigPath() {
+  if (existsSync(directConfigPath)) return directConfigPath;
+  return sandboxConfigPath;
 }
 
 async function promptText(message) {
@@ -410,7 +420,7 @@ function buildOnboardArgs(provider, settings) {
 }
 
 async function ensureFreshMachineOnboard() {
-  if (existsSync(configPath)) {
+  if (existsSync(getConfigPath())) {
     return { bootstrapped: false, provider: null };
   }
 
@@ -472,6 +482,7 @@ function copyDirContents(srcDir, dstDir) {
 }
 
 function backupConfigIfNeeded() {
+  const configPath = getConfigPath();
   if (!existsSync(configPath)) return false;
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const backupPath = `${configPath}.bak.${stamp}`;
@@ -551,27 +562,48 @@ function updateAgentToAgentAccess() {
   configSet('tools.agentToAgent.allow', mergedAllow);
 }
 
-function maybeSetDefaultBoss(previousAgents) {
-  const priorIds = new Set((previousAgents || []).map((item) => item.id));
-  const onlyMainBefore = priorIds.size === 1 && priorIds.has('main');
-  if (!onlyMainBefore) {
+function updateStarterSubagentAllowlist() {
+  const currentAgents = configGet('agents.list', []);
+  const starterAgentIds = starterAgents.map((agent) => agent.id);
+  const starterAgentIdSet = new Set(starterAgentIds);
+
+  for (const [index, agent] of (currentAgents || []).entries()) {
+    if (!starterAgentIdSet.has(agent.id)) continue;
+    const currentAllow = Array.isArray(agent.subagents?.allowAgents) ? agent.subagents.allowAgents : [];
+    const mergedAllow = Array.from(new Set([...(currentAllow || []), ...starterAgentIds]));
+    configSet(`agents.list.${index}.subagents.allowAgents`, mergedAllow);
+  }
+}
+
+function maybeSetDefaultBoss() {
+  const currentAgents = configGet('agents.list', []);
+  const configuredIds = new Set((currentAgents || []).map((agent) => agent.id));
+  const expectedIds = new Set(['main', ...starterAgents.map((agent) => agent.id)]);
+
+  if ((currentAgents || []).length !== expectedIds.size) {
     return false;
   }
 
-  const currentAgents = configGet('agents.list', []);
-  const updatedAgents = (currentAgents || []).map((agent) => {
-    if (agent.id === 'content-boss') {
-      return { ...agent, default: true };
+  for (const agentId of expectedIds) {
+    if (!configuredIds.has(agentId)) {
+      return false;
     }
-    if (agent.default) {
-      const nextAgent = { ...agent };
-      delete nextAgent.default;
-      return nextAgent;
-    }
-    return agent;
-  });
+  }
 
-  configSet('agents.list', updatedAgents);
+  const bossIndex = (currentAgents || []).findIndex((agent) => agent.id === 'content-boss');
+  if (bossIndex === -1) {
+    return false;
+  }
+
+  for (const [index, agent] of (currentAgents || []).entries()) {
+    if (!agent.default) continue;
+    if (agent.id === 'content-boss') {
+      return false;
+    }
+    configUnset(`agents.list.${index}.default`);
+  }
+
+  configSet(`agents.list.${bossIndex}.default`, true);
   return true;
 }
 
@@ -639,7 +671,7 @@ function printSummary(setDefault, freshInstall, provider) {
 ensureCommand('openclaw');
 ensureCommand('node');
 
-const hadConfigBeforeInstall = existsSync(configPath);
+const hadConfigBeforeInstall = existsSync(getConfigPath());
 const freshInstall = await ensureFreshMachineOnboard();
 
 if (hadConfigBeforeInstall) {
@@ -651,9 +683,10 @@ installSkills();
 installLocalHelperScripts();
 copyIfNeeded(join(repoRoot, 'templates', 'openclaw.json5.template'), templateConfigPath);
 
-const previousAgents = installAgents();
+installAgents();
 updateAgentToAgentAccess();
-const setDefault = maybeSetDefaultBoss(previousAgents);
+updateStarterSubagentAllowlist();
+const setDefault = maybeSetDefaultBoss();
 if (requestedModel) {
   runOpenClaw(['models', 'set', requestedModel]);
 }
