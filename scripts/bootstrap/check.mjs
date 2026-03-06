@@ -8,7 +8,9 @@ import { spawnSync } from 'node:child_process';
 const openclawHome = process.env.OPENCLAW_HOME || join(homedir(), '.openclaw');
 const contentHome = process.env.CONTENT_OS_HOME || join(homedir(), 'Documents', 'openclaw-content-os-data');
 const sharedSkillsDir = join(openclawHome, 'skills');
-const configPath = join(openclawHome, 'openclaw.json');
+const sandboxConfigPath = join(openclawHome, '.openclaw', 'openclaw.json');
+const directConfigPath = join(openclawHome, 'openclaw.json');
+const configPath = existsSync(directConfigPath) ? directConfigPath : sandboxConfigPath;
 const templateConfigPath = join(openclawHome, 'openclaw.content-os.template.json5');
 
 const starterAgents = [
