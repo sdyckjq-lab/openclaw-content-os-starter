@@ -1,8 +1,8 @@
 # OpenClaw Content OS Starter
 
-一个面向新手的 OpenClaw 多 Agent 内容创作模板。
+一个面向新手的 OpenClaw 多 Agent 内容创作 starter。
 
-它不是空壳 prompt 仓库，而是一套可以照着搭起来的内容生产骨架：
+它不是空壳 prompt 仓库，而是一套可以真正装起来、跑起来、扩展起来的内容生产系统骨架：
 
 - 素材采集
 - 素材索引
@@ -13,22 +13,30 @@
 
 默认目标只有一个：让你先用一条命令把系统装起来，然后跑通一条最小工作流。
 
+## Why This Repo
+
+- 大多数 OpenClaw 示例停在配置片段
+- 这个仓库直接给你一个可运行的内容工作流起点
+- 默认先解决“装起来”和“第一篇内容能不能跑通”
+- 复杂渠道、自动化、发布能力都放到第二阶段
+
 ## 适合谁
 
 - 刚接触 OpenClaw
 - 想做自己的内容创作系统
 - 想要多 Agent，但不想先研究复杂架构
 
-## 这个仓库包含什么
+## What You Get
 
 - 5 个角色模板：`boss`、`material`、`creator`、`thinktank`、`tech`
 - 6 个公开版 starter skills
 - 一套脱敏后的 `openclaw.json5` 配置模板
 - 本地内容目录模板
-- macOS / Windows 引导脚本
+- fresh-machine 一键安装器
+- 安装后自检命令
 - 面向新手的快速开始文档
 
-## 先看这个：一条命令安装
+## Install In One Command
 
 分两种情况：
 
@@ -49,6 +57,32 @@ GitHub 远程安装：
 bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
 ```
 
+## Verify In One Command
+
+安装完成后，直接运行：
+
+```bash
+bash ~/.openclaw/content-os-starter/scripts/check.sh
+```
+
+Windows:
+
+```bat
+%USERPROFILE%\.openclaw\content-os-starter\scripts\check.bat
+```
+
+它会检查这些关键项：
+
+- `openclaw.json` 是否存在且可通过校验
+- 5 个 starter agents 是否已经注册
+- 5 个 workspace 模板是否在正确位置
+- 6 个 starter skills 是否已经复制到 `~/.openclaw/skills`
+- 内容目录是否已经创建
+- `tools.agentToAgent` 是否已经补齐
+- Gateway 是否在运行
+
+如果有问题，它会直接告诉你缺哪一项。
+
 这个安装器会自动做这些事：
 
 - 如果你还没有 `~/.openclaw/openclaw.json`，先自动跑一次官方 `openclaw onboard --non-interactive`
@@ -66,7 +100,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 - 不会覆盖你现有的自定义 agent
 - 不会偷偷删除你的配置
 
-## 小白第一次安装时会发生什么
+## First Install For Beginners
 
 如果这是你的第一次安装，而且本机还没有 `openclaw.json`：
 
@@ -78,7 +112,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 
 你不用自己手改大段 JSON。
 
-## 一个 API key 够不够
+## Beginner Mental Model
 
 够。
 
@@ -92,7 +126,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 
 等你以后想升级，再单独给某几个 agent 指定不同模型。
 
-## 给高级用户的无人值守安装
+## Unattended Install
 
 如果你不想在安装过程中手动输入，也可以提前把值放进环境变量：
 
@@ -111,13 +145,27 @@ OPENCLAW_CONTENT_OS_MODEL="openai/gpt-5.2" \
 bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
 ```
 
+## First Successful Run
+
+先运行自检：
+
+```bash
+bash ~/.openclaw/content-os-starter/scripts/check.sh
+```
+
+再打开 Control UI：
+
+```bash
+openclaw dashboard
+```
+
 最简单的第一条消息：
 
 ```text
 帮我从一个公开链接开始，走一遍素材整理到初稿的大致流程。
 ```
 
-## 为什么现在终于接近“一键安装”了
+## What This Repo Optimizes For
 
 旧版 starter 的问题是：
 
@@ -136,7 +184,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 
 这就更接近 skill 的安装体验了。
 
-## 为什么默认不用 Telegram
+## Why Telegram Is Optional By Default
 
 因为新手最容易卡在渠道配置。
 

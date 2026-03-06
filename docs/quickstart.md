@@ -35,6 +35,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 - 安装 6 个 starter skills
 - 自动补全 `tools.agentToAgent`
 - 在全新环境里把 `content-boss` 设成默认入口
+- 复制一个安装后自检命令到 `~/.openclaw/content-os-starter/scripts/check.sh`
 
 ## 第 3 步：安装器不会做什么
 
@@ -64,7 +65,23 @@ GEMINI_API_KEY="your-key" \
 bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
 ```
 
-## 第 5 步：先走最简单入口
+## 第 5 步：先运行安装后自检
+
+```bash
+bash ~/.openclaw/content-os-starter/scripts/check.sh
+```
+
+Windows:
+
+```bat
+%USERPROFILE%\.openclaw\content-os-starter\scripts\check.bat
+```
+
+如果有失败项，先按提示修掉。
+
+如果只有 warning，通常已经可以继续往下走。
+
+## 第 6 步：先走最简单入口
 
 用 Control UI，而不是先配 Bot。
 
@@ -78,13 +95,14 @@ openclaw dashboard
 请按这个 starter 的默认流程，帮我规划一篇内容，从素材整理开始。
 ```
 
-## 第 6 步：判断你是否成功
+## 第 7 步：判断你是否成功
 
 如果下面 3 件事都正常，就说明 starter 已经装好了：
 
 1. 你能在 `~/.openclaw/` 看到 5 个新 workspace
 2. 你能在 `~/Documents/openclaw-content-os-data/` 看到内容目录
-3. `content-boss` 能解释 5 个角色和 6 步工作流
+3. `bash ~/.openclaw/content-os-starter/scripts/check.sh` 没有报 failed
+4. `content-boss` 能解释 5 个角色和 6 步工作流
 
 ## 最小建议
 
