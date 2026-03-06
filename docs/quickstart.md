@@ -192,6 +192,7 @@ OpenClaw 官方支持它们。
 
 ## 下一步
 
+- 看 `docs/provider-guide.md`
 - 看 `docs/architecture.md`
 - 看 `examples/first-prompts.md`
 - 想改成自己的风格时，看 `docs/customization.md`

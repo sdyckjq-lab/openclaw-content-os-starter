@@ -298,6 +298,7 @@ openclaw-content-os-starter/
 ## 文档入口
 
 - `docs/quickstart.md`：10 分钟上手
+- `docs/provider-guide.md`：中文用户怎么选 provider
 - `docs/architecture.md`：角色和流程图
 - `docs/security.md`：脱敏和安全检查
 - `docs/customization.md`：怎么改成你自己的系统
