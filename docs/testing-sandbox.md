@@ -26,6 +26,7 @@
 
 - 使用独立目录
 - 跳过 daemon 安装
+- 跳过首次 gateway health 检查
 - 使用单独的 Gateway 端口
 
 ## 最推荐的测试方式

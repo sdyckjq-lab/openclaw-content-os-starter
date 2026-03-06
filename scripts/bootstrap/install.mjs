@@ -392,6 +392,7 @@ function buildOnboardArgs(provider, settings) {
 
   if (sandboxMode) {
     args.push('--no-install-daemon');
+    args.push('--skip-health');
     args.push('--gateway-port', requestedGatewayPort || '18891');
   } else {
     args.push('--install-daemon');
