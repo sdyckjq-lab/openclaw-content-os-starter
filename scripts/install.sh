@@ -7,19 +7,8 @@ if [ -f "$SCRIPT_DIR/bootstrap/install.mjs" ]; then
   exec node "$SCRIPT_DIR/bootstrap/install.mjs" "$@"
 fi
 
-REPO_SLUG="${OPENCLAW_CONTENT_OS_REPO:-}"
+REPO_SLUG="${OPENCLAW_CONTENT_OS_REPO:-sdyckjq-lab/openclaw-content-os-starter}"
 BRANCH="${OPENCLAW_CONTENT_OS_BRANCH:-main}"
-
-if [ -z "$REPO_SLUG" ]; then
-  cat <<'EOF' >&2
-Remote install needs OPENCLAW_CONTENT_OS_REPO=owner/repo for now.
-
-Example:
-OPENCLAW_CONTENT_OS_REPO=your-name/openclaw-content-os-starter \
-  bash <(curl -fsSL https://raw.githubusercontent.com/your-name/openclaw-content-os-starter/main/scripts/install.sh)
-EOF
-  exit 1
-fi
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
