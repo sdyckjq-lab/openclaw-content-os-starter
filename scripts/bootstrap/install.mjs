@@ -19,6 +19,8 @@ const configPath = join(openclawHome, 'openclaw.json');
 const globalEnvPath = join(openclawHome, '.env');
 const templateConfigPath = join(openclawHome, 'openclaw.content-os.template.json5');
 const localStarterRoot = join(openclawHome, 'content-os-starter');
+const sandboxMode = process.argv.includes('--sandbox') || process.env.OPENCLAW_CONTENT_OS_SANDBOX === '1';
+const requestedGatewayPort = getArgValue('--gateway-port') || process.env.OPENCLAW_CONTENT_OS_GATEWAY_PORT || '';
 const requestedModel = getArgValue('--model') || process.env.OPENCLAW_CONTENT_OS_MODEL || '';
 const requestedApiKey = getArgValue('--api-key') || '';
 const requestedCustomBaseUrl = getArgValue('--custom-base-url') || process.env.OPENCLAW_CONTENT_OS_CUSTOM_BASE_URL || '';
@@ -381,13 +383,20 @@ function buildOnboardArgs(provider, settings) {
     'ref',
     '--gateway-bind',
     'loopback',
-    '--install-daemon',
-    '--daemon-runtime',
-    'node',
+    '--workspace',
+    join(openclawHome, 'workspace'),
     '--skip-channels',
     '--skip-skills',
     '--skip-ui',
   ];
+
+  if (sandboxMode) {
+    args.push('--no-install-daemon');
+    args.push('--gateway-port', requestedGatewayPort || '18891');
+  } else {
+    args.push('--install-daemon');
+    args.push('--daemon-runtime', 'node');
+  }
 
   if (provider.key === 'custom') {
     args.push('--custom-base-url', settings.customBaseUrl);
@@ -602,7 +611,11 @@ function printSummary(setDefault, freshInstall, provider) {
   }
 
   if (freshInstall && provider) {
-    console.log(`- saved your ${provider.label} API key reference in ~/.openclaw/.env`);
+    console.log(`- saved your ${provider.label} API key reference in ${globalEnvPath}`);
+  }
+
+  if (sandboxMode) {
+    console.log(`- sandbox mode enabled (no daemon install, gateway port ${requestedGatewayPort || '18891'})`);
   }
 
   console.log(`- all 5 starter agents currently share one default model${resolvedModel ? `: ${resolvedModel}` : ''}`);
