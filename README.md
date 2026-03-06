@@ -20,6 +20,22 @@
 - 默认先解决“装起来”和“第一篇内容能不能跑通”
 - 复杂渠道、自动化、发布能力都放到第二阶段
 
+## Flow
+
+```mermaid
+flowchart LR
+  A[Run installer] --> B[Choose one provider]
+  B --> C[Input one API key]
+  C --> D[Install 5 starter agents]
+  D --> E[Run self-check]
+  E --> F[Open dashboard]
+  F --> G[Talk to content-boss]
+  G --> H[Materials]
+  H --> I[Ideas]
+  I --> J[Outlines]
+  J --> K[Drafts]
+```
+
 ## 适合谁
 
 - 刚接触 OpenClaw
@@ -299,6 +315,8 @@ openclaw-content-os-starter/
 
 - `docs/quickstart.md`：10 分钟上手
 - `docs/provider-guide.md`：中文用户怎么选 provider
+- `docs/testing-sandbox.md`：怎么完全隔离测试
+- `docs/faq.md`：常见问题
 - `docs/architecture.md`：角色和流程图
 - `docs/security.md`：脱敏和安全检查
 - `docs/customization.md`：怎么改成你自己的系统
