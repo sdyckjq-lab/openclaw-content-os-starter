@@ -1,7 +1,16 @@
 // Copy only the sections you need into ~/.openclaw/openclaw.json.
 // This is a sanitized starter template.
+// Beginner default: let all 5 starter agents share the same default model.
+// Advanced users can override models per agent with agents.list[].model.
 
 {
+  // Example of one shared default model for all starter agents:
+  // agents: {
+  //   defaults: {
+  //     model: { primary: "openai/gpt-5.2" },
+  //   },
+  // },
+
   agents: {
     list: [
       {
