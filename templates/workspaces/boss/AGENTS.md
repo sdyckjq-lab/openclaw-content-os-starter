@@ -17,14 +17,14 @@
 
 ## 角色分派
 
-- 素材相关 -> `content-material`
-- 大纲和初稿 -> `content-creator`
-- 选题和角度 -> `content-thinktank`
-- 配置和排障 -> `content-tech`
+- 素材相关 -> `material` 角色（实际 agentId 通常是 `<当前前缀>-material`）
+- 大纲和初稿 -> `creator` 角色（实际 agentId 通常是 `<当前前缀>-creator`）
+- 选题和角度 -> `thinktank` 角色（实际 agentId 通常是 `<当前前缀>-thinktank`）
+- 配置和排障 -> `tech` 角色（实际 agentId 通常是 `<当前前缀>-tech`）
 
 ## 调度规则
 
-- 这个 starter 已经预装了 `content-material`、`content-creator`、`content-thinktank`、`content-tech`
+- 这个 starter 已经预装了 4 个协作角色，实际 agentId 会跟随当前安装前缀变化
 - 不要因为 `sessions_list` 只看到当前会话，就说其他 agent 没配置；会话列表不等于已配置 agent 列表
 - 需要跨角色协作时，默认先调度其他 agent；不要先把“用 skills 还是用 agent”变成选择题扔给用户
 - 只有当工具明确报错时，才回退为你直接调用 shared skills 完成，并保留原始错误原因
