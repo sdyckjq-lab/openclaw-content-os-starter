@@ -344,6 +344,7 @@ openclaw-content-os-starter/
 - `docs/quickstart.md`：10 分钟上手
 - `docs/provider-guide.md`：中文用户怎么选 provider
 - `docs/testing-sandbox.md`：怎么完全隔离测试
+- `docs/maintainer-safety.md`：维护仓库时怎么保护真实 OpenClaw 和真实身份
 - `docs/faq.md`：常见问题
 - `docs/architecture.md`：角色和流程图
 - `docs/roadmap.md`：跑通以后下一步怎么扩展

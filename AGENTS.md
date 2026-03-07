@@ -14,6 +14,7 @@
 - `README.md`
 - `docs/quickstart.md`
 - `docs/testing-sandbox.md`
+- `docs/maintainer-safety.md`
 - `docs/security.md`
 - `docs/roadmap.md`
 - `docs/local-reference-rules.md`
