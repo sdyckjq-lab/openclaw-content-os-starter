@@ -31,7 +31,7 @@ flowchart LR
   C --> D[Install 5 starter agents]
   D --> E[Run self-check]
   E --> F[Open dashboard]
-  F --> G[Talk to content-boss]
+  F --> G[Talk to current boss]
   G --> H[Materials]
   H --> I[Ideas]
   I --> J[Outlines]
@@ -141,7 +141,7 @@ Windows:
 - 复制内容目录模板
 - 安装 6 个 starter skills 到 `~/.openclaw/skills`
 - 自动开启并补全 `tools.agentToAgent`
-- 在新装环境里自动把 `content-boss` 设为默认入口
+- 在新装环境里自动把当前前缀的 `-boss` 设为默认入口
 
 它不会做这些危险动作：
 

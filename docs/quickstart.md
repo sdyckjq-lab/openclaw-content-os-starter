@@ -44,7 +44,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 - 复制本地内容目录模板
 - 安装 6 个 starter skills
 - 自动补全 `tools.agentToAgent`
-- 在全新环境里把 `content-boss` 设成默认入口
+- 在全新环境里把当前前缀的 `-boss` 设成默认入口
 - 复制一个安装后自检命令到 `~/.openclaw/content-os-starter/scripts/check.sh`
 
 ## 第 3 步：安装器不会做什么
@@ -135,7 +135,7 @@ openclaw dashboard
 1. 你能在 `~/.openclaw/` 看到 5 个新 workspace
 2. 你能在 `~/Documents/openclaw-content-os-data/` 看到内容目录
 3. `bash ~/.openclaw/content-os-starter/scripts/check.sh` 没有报 failed
-4. `content-boss` 能解释 5 个角色和 6 步工作流
+4. 当前默认 boss agent 能解释 5 个角色和 6 步工作流
 
 ## 最小建议
 
