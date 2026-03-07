@@ -1,5 +1,7 @@
 // Copy only the sections you need into ~/.openclaw/openclaw.json.
 // This is a sanitized starter template.
+// Fresh installs usually use starter-* agent IDs and workspace-starter-* workspaces.
+// If your install reused another prefix, prefer ~/.openclaw/openclaw.content-os.template.json5.
 // Beginner default: let all 5 starter agents share the same default model.
 // Advanced users can override models per agent with agents.list[].model.
 
@@ -14,37 +16,37 @@
   agents: {
     list: [
       {
-        id: "content-boss",
+        id: "starter-boss",
         default: true,
-        name: "Content Boss",
-        workspace: "~/.openclaw/workspace-content-os-boss",
-        agentDir: "~/.openclaw/agents/content-boss/agent",
+        name: "Starter Boss",
+        workspace: "~/.openclaw/workspace-starter-boss",
+        agentDir: "~/.openclaw/agents/starter-boss/agent",
         // Optional model override:
         // model: { primary: "your-provider/your-model" },
       },
       {
-        id: "content-material",
-        name: "Content Material",
-        workspace: "~/.openclaw/workspace-content-os-material",
-        agentDir: "~/.openclaw/agents/content-material/agent",
+        id: "starter-material",
+        name: "Starter Material",
+        workspace: "~/.openclaw/workspace-starter-material",
+        agentDir: "~/.openclaw/agents/starter-material/agent",
       },
       {
-        id: "content-creator",
-        name: "Content Creator",
-        workspace: "~/.openclaw/workspace-content-os-creator",
-        agentDir: "~/.openclaw/agents/content-creator/agent",
+        id: "starter-creator",
+        name: "Starter Creator",
+        workspace: "~/.openclaw/workspace-starter-creator",
+        agentDir: "~/.openclaw/agents/starter-creator/agent",
       },
       {
-        id: "content-thinktank",
-        name: "Content Thinktank",
-        workspace: "~/.openclaw/workspace-content-os-thinktank",
-        agentDir: "~/.openclaw/agents/content-thinktank/agent",
+        id: "starter-thinktank",
+        name: "Starter Thinktank",
+        workspace: "~/.openclaw/workspace-starter-thinktank",
+        agentDir: "~/.openclaw/agents/starter-thinktank/agent",
       },
       {
-        id: "content-tech",
-        name: "Content Tech",
-        workspace: "~/.openclaw/workspace-content-os-tech",
-        agentDir: "~/.openclaw/agents/content-tech/agent",
+        id: "starter-tech",
+        name: "Starter Tech",
+        workspace: "~/.openclaw/workspace-starter-tech",
+        agentDir: "~/.openclaw/agents/starter-tech/agent",
       },
     ],
   },
@@ -53,11 +55,11 @@
     agentToAgent: {
       enabled: true,
       allow: [
-        "content-boss",
-        "content-material",
-        "content-creator",
-        "content-thinktank",
-        "content-tech",
+        "starter-boss",
+        "starter-material",
+        "starter-creator",
+        "starter-thinktank",
+        "starter-tech",
       ],
     },
   },
@@ -66,7 +68,7 @@
   // Start without this if you are a beginner.
   // bindings: [
   //   {
-  //     agentId: "content-boss",
+  //     agentId: "starter-boss",
   //     match: { channel: "telegram", accountId: "main" },
   //   },
   // ],
