@@ -36,6 +36,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 
 ## 第 2 步：安装器会自动完成什么
 
+- 如果你已经有可用的 OpenClaw 配置和默认模型，直接复用，不再要求你重新输入 API key
 - 如果你还是第一次使用 OpenClaw，会先自动完成一次官方 onboarding
 - 安装 `content-basic` preset
 - 创建 5 个 starter agents
@@ -106,6 +107,12 @@ Windows:
 如果有失败项，先按提示修掉。
 
 如果只有 warning，通常已经可以继续往下走。
+
+如果你暂时不想做首次 onboarding，也可以先退出：
+
+```bash
+bash scripts/install.sh --skip-onboard
+```
 
 ## 第 6 步：先走最简单入口
 

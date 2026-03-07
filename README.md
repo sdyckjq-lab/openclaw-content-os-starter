@@ -133,6 +133,7 @@ Windows:
 
 这个安装器会自动做这些事：
 
+- 如果你已经有可用的 OpenClaw 配置和默认模型，直接复用，不再要求你重新输入 API key
 - 如果你还没有 `~/.openclaw/openclaw.json`，先自动跑一次官方 `openclaw onboard --non-interactive`
 - 安装 `content-basic` preset
 - 创建 5 个 starter agents
@@ -148,6 +149,12 @@ Windows:
 - 不会替你开 Telegram
 - 不会覆盖你现有的自定义 agent
 - 不会偷偷删除你的配置
+
+如果你现在还不想做首次 onboarding，也可以先退出：
+
+```bash
+bash scripts/install.sh --skip-onboard
+```
 
 ## First Install For Beginners
 
