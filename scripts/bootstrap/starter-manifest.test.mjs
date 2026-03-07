@@ -22,6 +22,18 @@ test('loads content-basic preset definition', () => {
   ]);
 });
 
+test('loads preset-template skeleton definition', () => {
+  const preset = loadPresetDefinition('preset-template');
+
+  assert.equal(preset.key, 'preset-template');
+  assert.equal(preset.roles.length, 2);
+  assert.deepEqual(
+    preset.roles.map((role) => role.key),
+    ['boss', 'specialist'],
+  );
+  assert.deepEqual(preset.sharedSkills, []);
+});
+
 test('resolves manifest from content-basic preset with overrides', () => {
   const manifest = resolveStarterManifest({
     openclawHome: '/tmp/openclaw-home',

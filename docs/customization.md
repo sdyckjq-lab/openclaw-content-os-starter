@@ -74,3 +74,21 @@
 - 新手最容易把自己绕晕
 
 先跑通，再重命名。
+
+## 如果你想做一个新场景 preset
+
+不要直接改坏 `content-basic`。
+
+最简单的起点是：
+
+- 复制 `presets/preset-template.json`
+- 改成你的新 preset 名称
+- 再按场景补角色、skills 和 workspaceTemplate
+
+这个骨架 preset 默认只有：
+
+- 一个总入口 `boss`
+- 一个通用执行角色 `specialist`
+
+它的作用不是直接交付客户。
+它的作用是让你以后做新场景时，有一个稳定起点。

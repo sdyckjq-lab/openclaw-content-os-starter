@@ -1,0 +1,23 @@
+{
+  "key": "preset-template",
+  "label": "Preset Template",
+  "description": "A runnable skeleton preset for future customer scenarios. Copy this file, rename it, then replace roles and skills with a real use case.",
+  "agentPrefix": "template",
+  "workspacePrefix": "workspace-template",
+  "bossRole": "boss",
+  "sharedSkills": [],
+  "roles": [
+    {
+      "key": "boss",
+      "label": "Boss",
+      "workspaceTemplate": "preset-boss",
+      "recommendedSkills": []
+    },
+    {
+      "key": "specialist",
+      "label": "Specialist",
+      "workspaceTemplate": "preset-specialist",
+      "recommendedSkills": []
+    }
+  ]
+}
