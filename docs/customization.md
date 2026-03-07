@@ -43,9 +43,13 @@
 
 ## 如果你想改数据目录
 
-默认是：`~/Documents/openclaw-content-os-data`
+推荐先改环境变量：`CONTENT_OS_HOME`
 
-如果你想改成别的路径，请统一修改：
+默认值是：`~/Documents/openclaw-content-os-data`
+
+如果你只是想把内容目录放到别的地方，优先在安装或运行时设置 `CONTENT_OS_HOME`，这样脚本会直接跟着新目录走。
+
+只有当你连 starter 文案和后续模板都想一起改掉时，再统一修改：
 
 - `templates/content-system/`
 - `skills/` 里的 starter skill 说明

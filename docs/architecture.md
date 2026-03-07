@@ -72,6 +72,8 @@
 
 默认数据目录：`~/Documents/openclaw-content-os-data`
 
+如果安装或运行时设置了 `CONTENT_OS_HOME`，实际内容目录会跟着它走。
+
 ```text
 openclaw-content-os-data/
 ├── materials/

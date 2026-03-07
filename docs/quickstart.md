@@ -41,7 +41,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 - 安装 `content-basic` preset
 - 创建 5 个 starter agents
 - 复制 workspace 模板
-- 复制本地内容目录模板
+- 在 `CONTENT_OS_HOME`（默认 `~/Documents/openclaw-content-os-data`）准备本地内容目录模板
 - 安装 6 个 starter skills
 - 自动补全 `tools.agentToAgent`
 - 在全新环境里把当前前缀的 `-boss` 设成默认入口
@@ -49,7 +49,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 
 ## 第 3 步：安装器不会做什么
 
-- 不会写入你的真实密钥
+- 不会把你的真实密钥写进这个公开仓库；如果你提供 API key，只会写到本机私有的 `~/.openclaw/.env`
 - 不会自动接入 Telegram
 - 不会自动帮你发布内容
 - 不会覆盖你现有的复杂自定义配置
@@ -133,7 +133,7 @@ openclaw dashboard
 如果下面 3 件事都正常，就说明 starter 已经装好了：
 
 1. 你能在 `~/.openclaw/` 看到 5 个新 workspace
-2. 你能在 `~/Documents/openclaw-content-os-data/` 看到内容目录
+2. 你能在 `CONTENT_OS_HOME` 指向的目录里看到内容目录；如果你没改过，它默认就是 `~/Documents/openclaw-content-os-data/`
 3. `bash ~/.openclaw/content-os-starter/scripts/check.sh` 没有报 failed
 4. 当前默认 boss agent 能解释 5 个角色和 6 步工作流
 
