@@ -2,9 +2,11 @@
 
 ## Important Paths
 
-- `~/Documents/openclaw-content-os-data/outlines`
-- `~/Documents/openclaw-content-os-data/drafts`
-- `~/Documents/openclaw-content-os-data/config/style-guide.md`
+- 内容根目录默认是 `~/Documents/openclaw-content-os-data`
+- 如果设置了 `CONTENT_OS_HOME`，以它为准
+- `outlines`
+- `drafts`
+- `config/style-guide.md`
 
 ## Starter Skills
 
