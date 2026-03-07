@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
 import { createInterface } from 'node:readline/promises';
 import { spawnSync } from 'node:child_process';
+import { buildTemplateConfig, expandHomePath, readStarterManifest, resolveStarterManifest } from './starter-manifest.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -20,10 +21,14 @@ const sandboxConfigPath = join(openclawHome, '.openclaw', 'openclaw.json');
 const globalEnvPath = join(openclawHome, '.env');
 const templateConfigPath = join(openclawHome, 'openclaw.content-os.template.json5');
 const localStarterRoot = join(openclawHome, 'content-os-starter');
+const starterManifestPath = join(localStarterRoot, 'starter-manifest.json');
 const sandboxMode = process.argv.includes('--sandbox') || process.env.OPENCLAW_CONTENT_OS_SANDBOX === '1';
 const requestedGatewayPort = getArgValue('--gateway-port') || process.env.OPENCLAW_CONTENT_OS_GATEWAY_PORT || '';
 const requestedModel = getArgValue('--model') || process.env.OPENCLAW_CONTENT_OS_MODEL || '';
 const requestedApiKey = getArgValue('--api-key') || '';
+const requestedPresetKey = getArgValue('--preset') || process.env.OPENCLAW_CONTENT_OS_PRESET || '';
+const requestedAgentPrefix = getArgValue('--agent-prefix') || process.env.OPENCLAW_CONTENT_OS_AGENT_PREFIX || '';
+const requestedWorkspacePrefix = getArgValue('--workspace-prefix') || process.env.OPENCLAW_CONTENT_OS_WORKSPACE_PREFIX || '';
 const requestedCustomBaseUrl = getArgValue('--custom-base-url') || process.env.OPENCLAW_CONTENT_OS_CUSTOM_BASE_URL || '';
 const requestedCustomModelId = getArgValue('--custom-model-id') || process.env.OPENCLAW_CONTENT_OS_CUSTOM_MODEL_ID || '';
 const requestedCustomCompatibility = normalizeCustomCompatibility(getArgValue('--custom-compatibility') || process.env.OPENCLAW_CONTENT_OS_CUSTOM_COMPATIBILITY || '');
@@ -107,13 +112,17 @@ const providerChoices = {
 
 const requestedProvider = normalizeProviderChoice(getArgValue('--provider') || process.env.OPENCLAW_CONTENT_OS_PROVIDER || '');
 
-const starterAgents = [
-  { id: 'content-boss', role: 'boss', workspace: join(openclawHome, 'workspace-content-os-boss') },
-  { id: 'content-material', role: 'material', workspace: join(openclawHome, 'workspace-content-os-material') },
-  { id: 'content-creator', role: 'creator', workspace: join(openclawHome, 'workspace-content-os-creator') },
-  { id: 'content-thinktank', role: 'thinktank', workspace: join(openclawHome, 'workspace-content-os-thinktank') },
-  { id: 'content-tech', role: 'tech', workspace: join(openclawHome, 'workspace-content-os-tech') },
-];
+const storedStarterManifest = readStarterManifest(starterManifestPath);
+const starterManifest = resolveStarterManifest({
+  openclawHome,
+  presetKey: requestedPresetKey,
+  agentPrefix: requestedAgentPrefix,
+  workspacePrefix: requestedWorkspacePrefix,
+  storedManifest: storedStarterManifest,
+});
+const starterAgents = starterManifest.agents;
+const bossAgentId = starterManifest.bossId;
+const starterSkills = starterManifest.sharedSkills;
 
 function ensureCommand(command) {
   const result = spawnSync(command, ['--help'], { stdio: 'ignore' });
@@ -324,6 +333,8 @@ function printFreshInstallHelp() {
   console.error('  OPENCLAW_CONTENT_OS_PROVIDER=openrouter OPENROUTER_API_KEY=your_key bash scripts/install.sh');
   console.error('  OPENCLAW_CONTENT_OS_PROVIDER=openai OPENAI_API_KEY=your_key bash scripts/install.sh');
   console.error('  OPENCLAW_CONTENT_OS_PROVIDER=custom CUSTOM_API_KEY=your_key OPENCLAW_CONTENT_OS_CUSTOM_BASE_URL=https://llm.example.com/v1 OPENCLAW_CONTENT_OS_CUSTOM_MODEL_ID=foo-large bash scripts/install.sh');
+  console.error('  OPENCLAW_CONTENT_OS_PRESET=content-basic bash scripts/install.sh');
+  console.error('  OPENCLAW_CONTENT_OS_AGENT_PREFIX=acme OPENCLAW_CONTENT_OS_WORKSPACE_PREFIX=workspace-acme-content bash scripts/install.sh');
   console.error('Official OAuth login flows such as qwen-portal or minimax-portal are documented by OpenClaw, but they are not part of this starter\'s one-key path.');
 }
 
@@ -481,6 +492,112 @@ function copyDirContents(srcDir, dstDir) {
   }
 }
 
+function assertRepoAssetsReady() {
+  const missing = [];
+
+  if (!existsSync(join(repoRoot, 'templates', 'content-system'))) {
+    missing.push('templates/content-system/');
+  }
+
+  if (!existsSync(join(repoRoot, 'skills'))) {
+    missing.push('skills/');
+  }
+
+  const presetPath = join(repoRoot, 'presets', `${starterManifest.presetKey}.json`);
+  if (!existsSync(presetPath)) {
+    missing.push(`presets/${starterManifest.presetKey}.json`);
+  }
+
+  for (const agent of starterAgents) {
+    const workspaceTemplateDir = join(repoRoot, 'templates', 'workspaces', agent.workspaceTemplate);
+    for (const fileName of ['AGENTS.md', 'SOUL.md', 'TOOLS.md']) {
+      const target = join(workspaceTemplateDir, fileName);
+      if (!existsSync(target)) {
+        missing.push(`templates/workspaces/${agent.workspaceTemplate}/${fileName}`);
+      }
+    }
+  }
+
+  for (const skill of starterSkills) {
+    const skillFile = join(repoRoot, 'skills', skill, 'SKILL.md');
+    if (!existsSync(skillFile)) {
+      missing.push(`skills/${skill}/SKILL.md`);
+    }
+  }
+
+  if (missing.length === 0) return;
+
+  console.error('Starter assets are incomplete. Fix these files first:');
+  for (const item of missing) {
+    console.error(`- ${item}`);
+  }
+  process.exit(1);
+}
+
+function assertNoStarterConflicts() {
+  const currentAgents = configGet('agents.list', []);
+  const agentsById = new Map((currentAgents || []).map((agent) => [agent.id, agent]));
+  const workspaceOwners = new Map();
+  const conflicts = [];
+
+  for (const agent of currentAgents || []) {
+    const workspace = expandHomePath(agent.workspace || '');
+    if (!workspace) continue;
+    workspaceOwners.set(workspace, agent.id);
+  }
+
+  for (const agent of starterAgents) {
+    const existingById = agentsById.get(agent.id);
+    if (existingById) {
+      const existingWorkspace = expandHomePath(existingById.workspace || '');
+      if (!existingWorkspace) {
+        conflicts.push(`${agent.id} already exists but has no workspace configured.`);
+      } else if (existingWorkspace !== agent.workspace) {
+        conflicts.push(`${agent.id} already points to ${existingWorkspace}, expected ${agent.workspace}.`);
+      }
+    }
+
+    const workspaceOwner = workspaceOwners.get(agent.workspace);
+    if (workspaceOwner && workspaceOwner !== agent.id) {
+      conflicts.push(`${agent.workspace} is already used by ${workspaceOwner}, expected ${agent.id}.`);
+    }
+  }
+
+  if (conflicts.length === 0) return;
+
+  console.error('Starter install stopped because existing agent/workspace settings would collide:');
+  for (const conflict of conflicts) {
+    console.error(`- ${conflict}`);
+  }
+  console.error('Use a different agent prefix or workspace prefix, for example:');
+  console.error('  OPENCLAW_CONTENT_OS_AGENT_PREFIX=acme OPENCLAW_CONTENT_OS_WORKSPACE_PREFIX=workspace-acme-content bash scripts/install.sh');
+  process.exit(1);
+}
+
+function writeStarterManifest() {
+  ensureDir(localStarterRoot);
+  writeFileSync(starterManifestPath, `${JSON.stringify(starterManifest, null, 2)}\n`, 'utf8');
+  console.log(`saved starter manifest: ${starterManifestPath}`);
+}
+
+function writeGeneratedTemplateConfig() {
+  const nextContent = buildTemplateConfig(starterManifest);
+  ensureDir(dirname(templateConfigPath));
+
+  if (existsSync(templateConfigPath)) {
+    const current = readFileSync(templateConfigPath, 'utf8');
+    if (current !== nextContent) {
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const backupPath = `${templateConfigPath}.bak.${stamp}`;
+      copyFileSync(templateConfigPath, backupPath);
+      console.log(`backup: ${backupPath}`);
+    }
+  }
+
+  writeFileSync(templateConfigPath, nextContent, 'utf8');
+  console.log(`write: ${templateConfigPath}`);
+}
+
 function backupConfigIfNeeded() {
   const configPath = getConfigPath();
   if (!existsSync(configPath)) return false;
@@ -494,7 +611,7 @@ function backupConfigIfNeeded() {
 function installWorkspaceTemplates() {
   for (const agent of starterAgents) {
     ensureDir(agent.workspace);
-    const srcDir = join(repoRoot, 'templates', 'workspaces', agent.role);
+    const srcDir = join(repoRoot, 'templates', 'workspaces', agent.workspaceTemplate);
     copyIfNeeded(join(srcDir, 'AGENTS.md'), join(agent.workspace, 'AGENTS.md'));
     copyIfNeeded(join(srcDir, 'SOUL.md'), join(agent.workspace, 'SOUL.md'));
     copyIfNeeded(join(srcDir, 'TOOLS.md'), join(agent.workspace, 'TOOLS.md'));
@@ -527,7 +644,7 @@ function installAgents() {
 
   for (const agent of starterAgents) {
     if (existingIds.has(agent.id)) {
-      console.log(`skip agent: ${agent.id}`);
+      console.log(`skip agent: ${agent.id} (${agent.workspace})`);
       continue;
     }
 
@@ -590,14 +707,14 @@ function maybeSetDefaultBoss() {
     }
   }
 
-  const bossIndex = (currentAgents || []).findIndex((agent) => agent.id === 'content-boss');
+  const bossIndex = (currentAgents || []).findIndex((agent) => agent.id === bossAgentId);
   if (bossIndex === -1) {
     return false;
   }
 
   for (const [index, agent] of (currentAgents || []).entries()) {
     if (!agent.default) continue;
-    if (agent.id === 'content-boss') {
+    if (agent.id === bossAgentId) {
       return false;
     }
     configUnset(`agents.list.${index}.default`);
@@ -622,23 +739,28 @@ function readResolvedModel() {
 
 function printSummary(setDefault, freshInstall, provider) {
   const resolvedModel = readResolvedModel();
+  const starterCount = starterAgents.length;
 
   console.log('\nDone.');
   console.log('\nInstalled:');
-  console.log('- 5 starter agents');
+  console.log(`- preset ${starterManifest.presetKey}`);
+  console.log(`- ${starterCount} starter agents`);
   console.log('- shared starter skills in ~/.openclaw/skills');
   console.log(`- local content data in ${contentHome}`);
   console.log(`- config template in ${templateConfigPath}`);
   console.log(`- local helper scripts in ${join(localStarterRoot, 'scripts')}`);
+  console.log(`- starter manifest in ${starterManifestPath}`);
 
   console.log('\nWhat changed automatically:');
   console.log('- copied workspace templates');
   console.log('- copied starter skills');
   console.log('- created starter agents if missing');
   console.log('- enabled tools.agentToAgent and merged allow list');
+  console.log(`- using preset ${starterManifest.presetKey}`);
+  console.log(`- using agent prefix ${starterManifest.agentPrefix} and workspace prefix ${starterManifest.workspacePrefix}`);
 
   if (setDefault) {
-    console.log('- set content-boss as the default agent because this looked like a fresh install');
+    console.log(`- set ${bossAgentId} as the default agent because this looked like a fresh install`);
   } else {
     console.log('- kept your existing default-agent behavior unchanged');
   }
@@ -651,13 +773,13 @@ function printSummary(setDefault, freshInstall, provider) {
     console.log(`- sandbox mode enabled (no daemon install, gateway port ${requestedGatewayPort || '18891'})`);
   }
 
-  console.log(`- all 5 starter agents currently share one default model${resolvedModel ? `: ${resolvedModel}` : ''}`);
+  console.log(`- all ${starterCount} starter agents currently share one default model${resolvedModel ? `: ${resolvedModel}` : ''}`);
   console.log('- advanced users can later override models per agent in openclaw.json');
 
   console.log('\nNext step:');
   console.log(`- Verify install: bash ${join(localStarterRoot, 'scripts', 'check.sh')}`);
   if (gatewayStatus()) {
-    console.log('- Open a NEW session in Control UI and switch to content-boss if needed');
+    console.log(`- Open a NEW session in Control UI and switch to ${bossAgentId} if needed`);
   } else {
     console.log('- Start or restart the gateway: openclaw gateway restart');
   }
@@ -670,9 +792,11 @@ function printSummary(setDefault, freshInstall, provider) {
 
 ensureCommand('openclaw');
 ensureCommand('node');
+assertRepoAssetsReady();
 
 const hadConfigBeforeInstall = existsSync(getConfigPath());
 const freshInstall = await ensureFreshMachineOnboard();
+assertNoStarterConflicts();
 
 if (hadConfigBeforeInstall) {
   backupConfigIfNeeded();
@@ -681,7 +805,8 @@ installWorkspaceTemplates();
 installContentTemplates();
 installSkills();
 installLocalHelperScripts();
-copyIfNeeded(join(repoRoot, 'templates', 'openclaw.json5.template'), templateConfigPath);
+writeGeneratedTemplateConfig();
+writeStarterManifest();
 
 installAgents();
 updateAgentToAgentAccess();

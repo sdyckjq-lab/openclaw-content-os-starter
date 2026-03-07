@@ -2,6 +2,8 @@
 
 一个面向新手的 OpenClaw 多 Agent 内容创作 starter。
 
+当前内置的第一个 preset 是：`content-basic`。
+
 它不是空壳 prompt 仓库，而是一套可以真正装起来、跑起来、扩展起来的内容生产系统骨架：
 
 - 素材采集
@@ -44,6 +46,7 @@ flowchart LR
 
 ## What You Get
 
+- 1 个默认 preset：`content-basic`
 - 5 个角色模板：`boss`、`material`、`creator`、`thinktank`、`tech`
 - 6 个公开版 starter skills
 - 一套脱敏后的 `openclaw.json5` 配置模板
@@ -65,6 +68,12 @@ flowchart LR
 
 ```bash
 bash scripts/install.sh
+```
+
+如果你想显式指定当前默认 preset：
+
+```bash
+bash scripts/install.sh --preset content-basic
 ```
 
 GitHub 远程安装：
@@ -125,6 +134,7 @@ Windows:
 这个安装器会自动做这些事：
 
 - 如果你还没有 `~/.openclaw/openclaw.json`，先自动跑一次官方 `openclaw onboard --non-interactive`
+- 安装 `content-basic` preset
 - 创建 5 个 starter agents
 - 复制 5 个 workspace 模板
 - 复制内容目录模板
@@ -318,8 +328,11 @@ openclaw-content-os-starter/
 - `docs/testing-sandbox.md`：怎么完全隔离测试
 - `docs/faq.md`：常见问题
 - `docs/architecture.md`：角色和流程图
+- `docs/roadmap.md`：跑通以后下一步怎么扩展
 - `docs/security.md`：脱敏和安全检查
 - `docs/customization.md`：怎么改成你自己的系统
+- `docs/local-reference-rules.md`：怎么安全使用本地参考项目
+- `docs/agency-agents-learning-checklist.md`：怎么把 `agency-agents` 当本地学习清单
 - `docs/public-safe-content-contract.md`：什么绝对不能公开
 
 ## 默认角色分工

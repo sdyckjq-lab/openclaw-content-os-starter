@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { spawnSync } from 'node:child_process';
+import { readStarterManifest, resolveStarterManifest } from './starter-manifest.mjs';
 
 const openclawHome = process.env.OPENCLAW_HOME || join(homedir(), '.openclaw');
 const contentHome = process.env.CONTENT_OS_HOME || join(homedir(), 'Documents', 'openclaw-content-os-data');
@@ -12,23 +13,24 @@ const sandboxConfigPath = join(openclawHome, '.openclaw', 'openclaw.json');
 const directConfigPath = join(openclawHome, 'openclaw.json');
 const configPath = existsSync(directConfigPath) ? directConfigPath : sandboxConfigPath;
 const templateConfigPath = join(openclawHome, 'openclaw.content-os.template.json5');
+const localStarterRoot = join(openclawHome, 'content-os-starter');
+const starterManifestPath = join(localStarterRoot, 'starter-manifest.json');
+const requestedPresetKey = getArgValue('--preset') || process.env.OPENCLAW_CONTENT_OS_PRESET || '';
+const requestedAgentPrefix = getArgValue('--agent-prefix') || process.env.OPENCLAW_CONTENT_OS_AGENT_PREFIX || '';
+const requestedWorkspacePrefix = getArgValue('--workspace-prefix') || process.env.OPENCLAW_CONTENT_OS_WORKSPACE_PREFIX || '';
 
-const starterAgents = [
-  { id: 'content-boss', role: 'boss' },
-  { id: 'content-material', role: 'material' },
-  { id: 'content-creator', role: 'creator' },
-  { id: 'content-thinktank', role: 'thinktank' },
-  { id: 'content-tech', role: 'tech' },
-];
+const storedStarterManifest = readStarterManifest(starterManifestPath);
+const starterManifest = resolveStarterManifest({
+  openclawHome,
+  presetKey: requestedPresetKey,
+  agentPrefix: requestedAgentPrefix,
+  workspacePrefix: requestedWorkspacePrefix,
+  storedManifest: storedStarterManifest,
+});
 
-const starterSkills = [
-  'x-article-extractor',
-  'update-material-index',
-  'material-recommendation',
-  'record-inspiration',
-  'deepen-topic',
-  'generate-draft',
-];
+const starterAgents = starterManifest.agents;
+const bossAgentId = starterManifest.bossId;
+const starterSkills = starterManifest.sharedSkills;
 
 const contentPaths = [
   join(contentHome, 'materials'),
@@ -51,6 +53,12 @@ function printLine(level, message) {
 
 function runOpenClaw(args) {
   return spawnSync('openclaw', args, { encoding: 'utf8' });
+}
+
+function getArgValue(flag) {
+  const index = process.argv.indexOf(flag);
+  if (index === -1) return '';
+  return process.argv[index + 1] || '';
 }
 
 function configGet(path, fallback = undefined) {
@@ -80,6 +88,13 @@ if (help.error) {
 
 printLine('OK', 'openclaw CLI found');
 
+if (storedStarterManifest) {
+  printLine('OK', `starter manifest found: ${starterManifestPath}`);
+  printLine('OK', `starter preset: ${starterManifest.presetKey}`);
+} else {
+  printLine('WARN', `starter manifest missing; falling back to preset ${starterManifest.presetKey}`);
+}
+
 checkExists(configPath, 'config file');
 checkExists(templateConfigPath, 'starter template config');
 
@@ -99,7 +114,7 @@ for (const agent of starterAgents) {
     printLine('FAIL', `agent missing from config: ${agent.id}`);
   }
 
-  const workspace = join(openclawHome, `workspace-content-os-${agent.role}`);
+  const workspace = agent.workspace;
   checkExists(workspace, `workspace for ${agent.id}`);
   checkExists(join(workspace, 'AGENTS.md'), `${agent.id} AGENTS.md`);
   checkExists(join(workspace, 'SOUL.md'), `${agent.id} SOUL.md`);
@@ -142,12 +157,12 @@ for (const skill of starterSkills) {
 }
 
 const defaultAgent = (agents || []).find((agent) => agent.default)?.id || '';
-if (defaultAgent === 'content-boss') {
-  printLine('OK', 'default starter entry is content-boss');
+if (defaultAgent === bossAgentId) {
+  printLine('OK', `default starter entry is ${bossAgentId}`);
 } else if (defaultAgent) {
-  printLine('WARN', `default agent is ${defaultAgent}; starter still works, but beginners should start with content-boss`);
+  printLine('WARN', `default agent is ${defaultAgent}; starter still works, but beginners should start with ${bossAgentId}`);
 } else {
-  printLine('WARN', 'no explicit default agent found; start with content-boss manually');
+  printLine('WARN', `no explicit default agent found; start with ${bossAgentId} manually`);
 }
 
 const modelStatus = runOpenClaw(['models', 'status', '--plain']);

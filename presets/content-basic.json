@@ -1,0 +1,66 @@
+{
+  "key": "content-basic",
+  "label": "Content Basic",
+  "description": "Default 5-agent content preset for collecting materials, planning topics, drafting content, and keeping the starter usable for beginners.",
+  "agentPrefix": "content",
+  "workspacePrefix": "workspace-content-os",
+  "bossRole": "boss",
+  "sharedSkills": [
+    "x-article-extractor",
+    "update-material-index",
+    "material-recommendation",
+    "record-inspiration",
+    "deepen-topic",
+    "generate-draft"
+  ],
+  "roles": [
+    {
+      "key": "boss",
+      "label": "Boss",
+      "workspaceTemplate": "boss",
+      "recommendedSkills": [
+        "x-article-extractor",
+        "update-material-index",
+        "material-recommendation",
+        "record-inspiration",
+        "deepen-topic",
+        "generate-draft"
+      ]
+    },
+    {
+      "key": "material",
+      "label": "Material",
+      "workspaceTemplate": "material",
+      "recommendedSkills": [
+        "x-article-extractor",
+        "update-material-index",
+        "material-recommendation"
+      ]
+    },
+    {
+      "key": "creator",
+      "label": "Creator",
+      "workspaceTemplate": "creator",
+      "recommendedSkills": [
+        "deepen-topic",
+        "generate-draft"
+      ]
+    },
+    {
+      "key": "thinktank",
+      "label": "Thinktank",
+      "workspaceTemplate": "thinktank",
+      "recommendedSkills": [
+        "material-recommendation",
+        "record-inspiration",
+        "deepen-topic"
+      ]
+    },
+    {
+      "key": "tech",
+      "label": "Tech",
+      "workspaceTemplate": "tech",
+      "recommendedSkills": []
+    }
+  ]
+}

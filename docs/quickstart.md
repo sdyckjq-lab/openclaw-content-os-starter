@@ -14,10 +14,18 @@
 
 ## 第 1 步：执行安装命令
 
+当前默认 preset 是：`content-basic`。
+
 如果你已经在仓库目录里：
 
 ```bash
 bash scripts/install.sh
+```
+
+如果你想显式写出来，也可以：
+
+```bash
+bash scripts/install.sh --preset content-basic
 ```
 
 如果这个项目已经发布到 GitHub，可以用远程安装方式：
@@ -29,6 +37,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 ## 第 2 步：安装器会自动完成什么
 
 - 如果你还是第一次使用 OpenClaw，会先自动完成一次官方 onboarding
+- 安装 `content-basic` preset
 - 创建 5 个 starter agents
 - 复制 workspace 模板
 - 复制本地内容目录模板

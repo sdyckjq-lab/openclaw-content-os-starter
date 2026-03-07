@@ -2,8 +2,12 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-if [ -f "$SCRIPT_DIR/bootstrap/install.mjs" ]; then
+if [ -f "$SCRIPT_DIR/bootstrap/install.mjs" ] \
+  && [ -d "$REPO_ROOT/templates" ] \
+  && [ -d "$REPO_ROOT/skills" ] \
+  && [ -d "$REPO_ROOT/presets" ]; then
   exec node "$SCRIPT_DIR/bootstrap/install.mjs" "$@"
 fi
 
