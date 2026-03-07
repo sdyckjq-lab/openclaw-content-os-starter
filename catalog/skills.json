@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "skills": [
+    {
+      "slug": "x-article-extractor",
+      "label": "X Article Extractor",
+      "source": {
+        "type": "built-in",
+        "path": "skills/x-article-extractor"
+      },
+      "trust": "trusted",
+      "installMode": "bundled",
+      "scenarios": ["content-basic"],
+      "roles": ["boss", "material"]
+    },
+    {
+      "slug": "update-material-index",
+      "label": "Update Material Index",
+      "source": {
+        "type": "built-in",
+        "path": "skills/update-material-index"
+      },
+      "trust": "trusted",
+      "installMode": "bundled",
+      "scenarios": ["content-basic"],
+      "roles": ["boss", "material"]
+    },
+    {
+      "slug": "material-recommendation",
+      "label": "Material Recommendation",
+      "source": {
+        "type": "built-in",
+        "path": "skills/material-recommendation"
+      },
+      "trust": "trusted",
+      "installMode": "bundled",
+      "scenarios": ["content-basic"],
+      "roles": ["boss", "material", "thinktank"]
+    },
+    {
+      "slug": "record-inspiration",
+      "label": "Record Inspiration",
+      "source": {
+        "type": "built-in",
+        "path": "skills/record-inspiration"
+      },
+      "trust": "trusted",
+      "installMode": "bundled",
+      "scenarios": ["content-basic"],
+      "roles": ["boss", "thinktank"]
+    },
+    {
+      "slug": "deepen-topic",
+      "label": "Deepen Topic",
+      "source": {
+        "type": "built-in",
+        "path": "skills/deepen-topic"
+      },
+      "trust": "trusted",
+      "installMode": "bundled",
+      "scenarios": ["content-basic"],
+      "roles": ["boss", "creator", "thinktank"]
+    },
+    {
+      "slug": "generate-draft",
+      "label": "Generate Draft",
+      "source": {
+        "type": "built-in",
+        "path": "skills/generate-draft"
+      },
+      "trust": "trusted",
+      "installMode": "bundled",
+      "scenarios": ["content-basic"],
+      "roles": ["boss", "creator"]
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { readStarterManifest, resolveStarterManifest } from './starter-manifest.mjs';
+import { collectPresetSkillIds } from './skill-catalog.mjs';
 
 const openclawHome = process.env.OPENCLAW_HOME || join(homedir(), '.openclaw');
 const contentHome = process.env.CONTENT_OS_HOME || join(homedir(), 'Documents', 'openclaw-content-os-data');
@@ -30,7 +31,7 @@ const starterManifest = resolveStarterManifest({
 
 const starterAgents = starterManifest.agents;
 const bossAgentId = starterManifest.bossId;
-const starterSkills = starterManifest.sharedSkills;
+const starterSkills = collectPresetSkillIds(starterManifest);
 
 const contentPaths = [
   join(contentHome, 'materials'),

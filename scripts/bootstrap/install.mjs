@@ -7,6 +7,7 @@ import { homedir } from 'node:os';
 import { createInterface } from 'node:readline/promises';
 import { spawnSync } from 'node:child_process';
 import { buildTemplateConfig, expandHomePath, readStarterManifest, resolveStarterManifest } from './starter-manifest.mjs';
+import { getPresetCatalogSkills, loadSkillCatalog, validatePresetSkillsAgainstCatalog } from './skill-catalog.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -123,6 +124,8 @@ const starterManifest = resolveStarterManifest({
 const starterAgents = starterManifest.agents;
 const bossAgentId = starterManifest.bossId;
 const starterSkills = starterManifest.sharedSkills;
+const skillCatalog = loadSkillCatalog();
+const presetCatalogSkills = getPresetCatalogSkills(starterManifest, skillCatalog);
 
 function ensureCommand(command) {
   const result = spawnSync(command, ['--help'], { stdio: 'ignore' });
@@ -503,9 +506,18 @@ function assertRepoAssetsReady() {
     missing.push('skills/');
   }
 
+  if (!existsSync(join(repoRoot, 'catalog', 'skills.json'))) {
+    missing.push('catalog/skills.json');
+  }
+
   const presetPath = join(repoRoot, 'presets', `${starterManifest.presetKey}.json`);
   if (!existsSync(presetPath)) {
     missing.push(`presets/${starterManifest.presetKey}.json`);
+  }
+
+  const missingCatalogSkills = validatePresetSkillsAgainstCatalog(starterManifest, skillCatalog);
+  for (const skill of missingCatalogSkills) {
+    missing.push(`catalog/skills.json missing ${skill}`);
   }
 
   for (const agent of starterAgents) {
@@ -518,10 +530,13 @@ function assertRepoAssetsReady() {
     }
   }
 
-  for (const skill of starterSkills) {
-    const skillFile = join(repoRoot, 'skills', skill, 'SKILL.md');
+  for (const skill of presetCatalogSkills) {
+    if (skill.source.type !== 'built-in') {
+      continue;
+    }
+    const skillFile = join(repoRoot, skill.source.path, 'SKILL.md');
     if (!existsSync(skillFile)) {
-      missing.push(`skills/${skill}/SKILL.md`);
+      missing.push(`${skill.source.path}/SKILL.md`);
     }
   }
 
@@ -624,12 +639,15 @@ function installContentTemplates() {
 }
 
 function installSkills() {
-  const srcDir = join(repoRoot, 'skills');
   ensureDir(sharedSkillsDir);
-  for (const name of readdirSync(srcDir)) {
-    const src = join(srcDir, name);
+  for (const skill of presetCatalogSkills) {
+    if (skill.source.type !== 'built-in') {
+      console.log(`skip external skill: ${skill.slug}`);
+      continue;
+    }
+    const src = join(repoRoot, skill.source.path);
     if (!statSync(src).isDirectory()) continue;
-    const dst = join(sharedSkillsDir, name);
+    const dst = join(sharedSkillsDir, skill.slug);
     copyDirContents(src, dst);
   }
 }
@@ -745,7 +763,7 @@ function printSummary(setDefault, freshInstall, provider) {
   console.log('\nInstalled:');
   console.log(`- preset ${starterManifest.presetKey}`);
   console.log(`- ${starterCount} starter agents`);
-  console.log('- shared starter skills in ~/.openclaw/skills');
+  console.log(`- ${presetCatalogSkills.length} preset skills in ~/.openclaw/skills`);
   console.log(`- local content data in ${contentHome}`);
   console.log(`- config template in ${templateConfigPath}`);
   console.log(`- local helper scripts in ${join(localStarterRoot, 'scripts')}`);
@@ -753,7 +771,7 @@ function printSummary(setDefault, freshInstall, provider) {
 
   console.log('\nWhat changed automatically:');
   console.log('- copied workspace templates');
-  console.log('- copied starter skills');
+  console.log('- copied preset skills from catalog');
   console.log('- created starter agents if missing');
   console.log('- enabled tools.agentToAgent and merged allow list');
   console.log(`- using preset ${starterManifest.presetKey}`);
