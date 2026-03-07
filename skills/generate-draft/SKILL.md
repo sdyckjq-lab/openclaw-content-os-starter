@@ -7,15 +7,17 @@ description: Turn an outline into a readable first draft using the local style g
 
 ## Goal
 
+内容根目录默认是 `~/Documents/openclaw-content-os-data`。如果设置了 `CONTENT_OS_HOME`，以它为准。
+
 根据：
 
-- `~/Documents/openclaw-content-os-data/outlines/`
-- `~/Documents/openclaw-content-os-data/config/style-guide.md`
+- `outlines/`
+- `config/style-guide.md`
 - 参考素材
 
 生成一版初稿，保存到：
 
-- `~/Documents/openclaw-content-os-data/drafts/<topic>/draft.md`
+- `drafts/<topic>/draft.md`
 
 ## Happy Path
 

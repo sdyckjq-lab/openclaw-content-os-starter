@@ -7,9 +7,11 @@ description: Turn one saved idea into a practical outline with sections, key poi
 
 ## Goal
 
+内容根目录默认是 `~/Documents/openclaw-content-os-data`。如果设置了 `CONTENT_OS_HOME`，以它为准。
+
 把一个灵感变成可写的大纲，并保存到：
 
-- `~/Documents/openclaw-content-os-data/outlines/`
+- `outlines/`
 
 ## Happy Path
 
