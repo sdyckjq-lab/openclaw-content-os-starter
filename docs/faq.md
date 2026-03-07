@@ -124,6 +124,31 @@ starter 的默认路径是：
 
 那份文档是专门给你这种需求准备的。
 
+如果你是维护这个仓库的人，再看：`docs/maintainer-safety.md`
+
+## 我不想让公开仓库显示我的真实姓名，怎么办
+
+先分两种情况：
+
+1. 还没提交
+2. 已经推送了
+
+如果还没提交，最稳的是只对这一次提交临时指定身份：
+
+```bash
+GIT_AUTHOR_NAME="OpenClaw Maintainer" \
+GIT_AUTHOR_EMAIL="maintainer@openclaw.invalid" \
+GIT_COMMITTER_NAME="OpenClaw Maintainer" \
+GIT_COMMITTER_EMAIL="maintainer@openclaw.invalid" \
+git commit -m "docs: your message"
+```
+
+这不会改你的全局 Git 配置。
+
+如果已经推送了，想把历史里的真实姓名去掉，就需要重写 Git 历史再强制推送。
+
+这对公开仓库和默认分支都属于高风险操作，不建议随手做。
+
 ## 安装好以后，我第一句应该说什么
 
 可以直接说：
