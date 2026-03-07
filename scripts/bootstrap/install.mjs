@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
 import { createInterface } from 'node:readline/promises';
 import { spawnSync } from 'node:child_process';
+import { analyzeExistingOpenClawState, shouldProbeExistingSetup } from './existing-openclaw.mjs';
 import { buildTemplateConfig, expandHomePath, readStarterManifest, resolveStarterManifest } from './starter-manifest.mjs';
 import { getPresetCatalogSkills, loadSkillCatalog, validatePresetSkillsAgainstCatalog } from './skill-catalog.mjs';
 
@@ -27,6 +28,7 @@ const sandboxMode = process.argv.includes('--sandbox') || process.env.OPENCLAW_C
 const requestedGatewayPort = getArgValue('--gateway-port') || process.env.OPENCLAW_CONTENT_OS_GATEWAY_PORT || '';
 const requestedModel = getArgValue('--model') || process.env.OPENCLAW_CONTENT_OS_MODEL || '';
 const requestedApiKey = getArgValue('--api-key') || '';
+const requestedSkipOnboard = process.argv.includes('--skip-onboard') || process.env.OPENCLAW_CONTENT_OS_SKIP_ONBOARD === '1';
 const requestedPresetKey = getArgValue('--preset') || process.env.OPENCLAW_CONTENT_OS_PRESET || '';
 const requestedAgentPrefix = getArgValue('--agent-prefix') || process.env.OPENCLAW_CONTENT_OS_AGENT_PREFIX || '';
 const requestedWorkspacePrefix = getArgValue('--workspace-prefix') || process.env.OPENCLAW_CONTENT_OS_WORKSPACE_PREFIX || '';
@@ -154,6 +156,15 @@ function tryOpenClaw(args) {
   const result = spawnSync('openclaw', args, { encoding: 'utf8' });
   if (result.status !== 0) return null;
   return (result.stdout || '').trim();
+}
+
+function runOpenClawStatus(args) {
+  const result = spawnSync('openclaw', args, { encoding: 'utf8' });
+  return {
+    status: result.status ?? 1,
+    stdout: (result.stdout || '').trim(),
+    stderr: (result.stderr || '').trim(),
+  };
 }
 
 function getArgValue(flag) {
@@ -326,9 +337,27 @@ async function chooseProviderInteractively() {
   }
 }
 
+async function chooseFreshInstallMode() {
+  console.log('\n当前没有检测到可复用的 OpenClaw 配置。');
+  console.log('这个 starter 默认更适合已经装好 OpenClaw 的用户。');
+  console.log('你可以：');
+  console.log('1. 现在继续做首次初始化（需要 provider + API key）');
+  console.log('2. 先跳过，等你按官方流程配好 OpenClaw 后再回来');
+
+  while (true) {
+    const answer = await promptText('输入 1 或 2: ');
+    if (answer === '1') return 'bootstrap';
+    if (answer === '2') return 'skip';
+    console.log('输入无效，请重新输入。');
+  }
+}
+
 function printFreshInstallHelp() {
-  console.error('Fresh-machine setup needs one provider and one API key.');
+  console.error('No reusable OpenClaw setup detected.');
+  console.error('This starter now defaults to reusing an existing OpenClaw config and model when available.');
   console.error('For beginners, just rerun this installer in a normal terminal and follow the prompts.');
+  console.error('If you want to stop before onboarding, use:');
+  console.error('  bash scripts/install.sh --skip-onboard');
   console.error('For unattended install, use one of these examples:');
   console.error('  OPENCLAW_CONTENT_OS_PROVIDER=minimax MINIMAX_API_KEY=your_key bash scripts/install.sh');
   console.error('  OPENCLAW_CONTENT_OS_PROVIDER=moonshot MOONSHOT_API_KEY=your_key bash scripts/install.sh');
@@ -434,8 +463,25 @@ function buildOnboardArgs(provider, settings) {
 }
 
 async function ensureFreshMachineOnboard() {
-  if (existsSync(getConfigPath())) {
-    return { bootstrapped: false, provider: null };
+  const hasConfigFile = existsSync(getConfigPath());
+  const shouldProbe = shouldProbeExistingSetup({ sandboxMode, hasConfigFile });
+  const existingState = analyzeExistingOpenClawState({
+    hasConfigFile,
+    configValidateStatus: shouldProbe ? runOpenClawStatus(['config', 'validate']).status : 1,
+    modelStatusOutput: shouldProbe ? (tryOpenClaw(['models', 'status', '--plain']) || '') : '',
+  });
+
+  if (existingState.canReuseExistingSetup) {
+    if (existingState.reason === 'config-validate' || existingState.reason === 'model-status') {
+      console.log(`Detected existing OpenClaw setup${existingState.detectedModel ? ` (${existingState.detectedModel})` : ''}. Reusing it without asking for a new API key.`);
+    }
+    return { bootstrapped: false, provider: null, reusedExistingSetup: true };
+  }
+
+  if (requestedSkipOnboard) {
+    console.log('No reusable OpenClaw setup found. Stopping before onboarding because --skip-onboard was requested.');
+    console.log('Next step: finish official OpenClaw setup first, then rerun this installer.');
+    process.exit(0);
   }
 
   let providerKey = requestedProvider || detectProviderFromEnvironment();
@@ -443,6 +489,12 @@ async function ensureFreshMachineOnboard() {
     if (!interactive) {
       printFreshInstallHelp();
       process.exit(1);
+    }
+    const mode = await chooseFreshInstallMode();
+    if (mode === 'skip') {
+      console.log('Starter install stopped before onboarding.');
+      console.log('Next step: finish official OpenClaw setup first, then rerun this installer.');
+      process.exit(0);
     }
     providerKey = await chooseProviderInteractively();
   }
