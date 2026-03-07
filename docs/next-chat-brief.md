@@ -16,7 +16,7 @@
 
 - GitHub 仓库已发布并可用
 - 一键安装、fresh install、自检、sandbox 测试都已做好
-- 默认入口已修成 `content-boss`
+- 默认入口会自动落到当前前缀的 `-boss`
 - starter 多 agent 调度问题已补强
 - 当前最新提交：`e2811de` `fix: enable starter agent delegation`
 
@@ -24,7 +24,7 @@
 
 - 聊天里的 `/agents` 不是“配置 agent 列表”，而是“当前会话绑定 agent”
 - `sessions_send` 需要的是 `sessionKey`，不是 `agentId`
-- 跨 agent 调度时，`content-boss` 应优先用 `sessions_spawn(agentId=...)`
+- 跨 agent 调度时，当前 boss agent（通常是 `<当前前缀>-boss`）应优先用 `sessions_spawn(agentId=...)`
 - 如果调度失败，才回退成 boss 自己直接调用 shared skills
 
 ## 明天优先做什么
@@ -68,9 +68,9 @@ openclaw dashboard
 ```text
 请做一次多 agent 调度自检：
 1. 不要把 6 步全都自己做完
-2. 先把素材整理交给 `content-material`
-3. 再把选题建议交给 `content-thinktank`
-4. 再把大纲或初稿交给 `content-creator`
+2. 先把素材整理交给 `<当前前缀>-material`
+3. 再把选题建议交给 `<当前前缀>-thinktank`
+4. 再把大纲或初稿交给 `<当前前缀>-creator`
 5. 如果工具调用失败，原样告诉我错误，不要编造“其他 agent 没配置”
 6. 最后用列表说明每一步实际是哪个 agent 完成的
 ```
@@ -94,7 +94,7 @@ openclaw dashboard
 先检查：
 - 仓库状态
 - 当前 sandbox 是否还可用
-- `content-boss` 的多 agent 调度是否已经跑通
+- 当前 boss agent（通常是 `<当前前缀>-boss`）的多 agent 调度是否已经跑通
 
 如果没跑通，优先修最小问题，不要大改架构。
 ```
