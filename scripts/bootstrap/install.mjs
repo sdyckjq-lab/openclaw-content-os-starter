@@ -9,6 +9,7 @@ import { spawnSync } from 'node:child_process';
 import { analyzeExistingOpenClawState, shouldProbeExistingSetup } from './existing-openclaw.mjs';
 import { buildTemplateConfig, expandHomePath, readStarterManifest, resolveStarterManifest } from './starter-manifest.mjs';
 import { getPresetCatalogSkills, loadSkillCatalog, validatePresetSkillsAgainstCatalog } from './skill-catalog.mjs';
+import { resolveStarterIdentity } from './starter-identity.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -116,11 +117,29 @@ const providerChoices = {
 const requestedProvider = normalizeProviderChoice(getArgValue('--provider') || process.env.OPENCLAW_CONTENT_OS_PROVIDER || '');
 
 const storedStarterManifest = readStarterManifest(starterManifestPath);
-const starterManifest = resolveStarterManifest({
+const requestedStarterManifest = resolveStarterManifest({
   openclawHome,
   presetKey: requestedPresetKey,
   agentPrefix: requestedAgentPrefix,
   workspacePrefix: requestedWorkspacePrefix,
+  storedManifest: storedStarterManifest,
+});
+const currentConfiguredAgents = configGet('agents.list', []);
+const starterIdentity = resolveStarterIdentity({
+  requestedAgentPrefix,
+  requestedWorkspacePrefix,
+  storedManifest: storedStarterManifest,
+  currentAgents: currentConfiguredAgents,
+  openclawHome,
+  roleKeys: requestedStarterManifest.agents.map((agent) => agent.role),
+  presetDefaultAgentPrefix: requestedStarterManifest.agentPrefix,
+  presetDefaultWorkspacePrefix: requestedStarterManifest.workspacePrefix,
+});
+const starterManifest = resolveStarterManifest({
+  openclawHome,
+  presetKey: requestedPresetKey,
+  agentPrefix: starterIdentity.agentPrefix,
+  workspacePrefix: starterIdentity.workspacePrefix,
   storedManifest: storedStarterManifest,
 });
 const starterAgents = starterManifest.agents;
@@ -828,6 +847,13 @@ function printSummary(setDefault, freshInstall, provider) {
   console.log('- enabled tools.agentToAgent and merged allow list');
   console.log(`- using preset ${starterManifest.presetKey}`);
   console.log(`- using agent prefix ${starterManifest.agentPrefix} and workspace prefix ${starterManifest.workspacePrefix}`);
+  if (starterIdentity.mode === 'automatic') {
+    console.log('- auto-generated starter identity because no prefix was provided');
+  } else if (starterIdentity.mode === 'detected-existing') {
+    console.log('- reused an existing starter identity already present on this machine');
+  } else if (starterIdentity.mode === 'stored') {
+    console.log('- reused the previously installed starter identity from starter-manifest.json');
+  }
 
   if (setDefault) {
     console.log(`- set ${bossAgentId} as the default agent because this looked like a fresh install`);
