@@ -7,13 +7,15 @@ description: Scan local source articles and rebuild the materials index for the 
 
 ## Goal
 
+内容根目录默认是 `~/Documents/openclaw-content-os-data`。如果设置了 `CONTENT_OS_HOME`，以它为准。
+
 扫描：
 
-- `~/Documents/openclaw-content-os-data/materials/source-articles/`
+- `materials/source-articles/`
 
 并更新：
 
-- `~/Documents/openclaw-content-os-data/materials/index.md`
+- `materials/index.md`
 
 ## What To Extract
 

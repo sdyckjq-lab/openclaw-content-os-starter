@@ -9,9 +9,11 @@ description: Save a public X or Twitter article, thread, or post as local Markdo
 
 ## Goal
 
+内容根目录默认是 `~/Documents/openclaw-content-os-data`。如果设置了 `CONTENT_OS_HOME`，以它为准。
+
 把公开 X 链接保存到：
 
-- `~/Documents/openclaw-content-os-data/materials/source-articles/`
+- `materials/source-articles/`
 
 ## Happy Path
 

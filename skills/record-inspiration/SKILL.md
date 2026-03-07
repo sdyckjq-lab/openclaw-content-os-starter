@@ -7,9 +7,11 @@ description: Save a rough idea into the local ideas inbox and attach any related
 
 ## Goal
 
+内容根目录默认是 `~/Documents/openclaw-content-os-data`。如果设置了 `CONTENT_OS_HOME`，以它为准。
+
 把一个灵感记录到：
 
-- `~/Documents/openclaw-content-os-data/ideas/ideas.md`
+- `ideas/ideas.md`
 
 ## Happy Path
 

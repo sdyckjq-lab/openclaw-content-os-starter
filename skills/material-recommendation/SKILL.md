@@ -7,9 +7,11 @@ description: Recommend useful materials from the local index based on a topic or
 
 ## Goal
 
+内容根目录默认是 `~/Documents/openclaw-content-os-data`。如果设置了 `CONTENT_OS_HOME`，以它为准。
+
 根据关键词，从：
 
-- `~/Documents/openclaw-content-os-data/materials/index.md`
+- `materials/index.md`
 
 里找出最相关的素材。
 
