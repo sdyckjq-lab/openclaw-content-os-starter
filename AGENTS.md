@@ -63,26 +63,36 @@
 - Build：未提供正式 build 命令。
 - Lint：未发现仓库级 ESLint、Prettier、Biome、ShellCheck 配置。
 - Typecheck：未提供独立 typecheck 命令。
-- Test：未发现 Vitest、Jest、Playwright、Cypress、Bats 等正式测试框架。
-- 当前“测试”主要靠沙箱安装流程 + 自检脚本。
+- Test：未发现 Vitest、Jest、Playwright、Cypress、Bats 等正式测试框架；当前可用的是 Node 原生测试入口 `bash scripts/bootstrap-test.sh`。
+- 当前“测试”主要靠 bootstrap 原生测试 + 沙箱安装流程 + 自检脚本。
 
 ## 单测与单项验证
 这里没有真正意义上的“单个测试文件”。
 最接近的单项验证方式：
-1. 改安装相关逻辑时，优先跑：`bash scripts/sandbox-test.sh`
-2. 沙箱安装完成后，再跑：`bash "$OPENCLAW_HOME/content-os-starter/scripts/check.sh"`
-3. 只改自检逻辑时，可直接跑：`bash scripts/check.sh`
+1. 改 bootstrap 辅助逻辑时，先跑：`bash scripts/bootstrap-test.sh`
+2. 改安装相关逻辑时，优先跑：`bash scripts/sandbox-test.sh`
+3. 沙箱安装完成后，再跑：`bash "$OPENCLAW_HOME/content-os-starter/scripts/check.sh"`
+4. 只改自检逻辑时，可直接跑：`bash scripts/check.sh`
 验证原则：
 - 不要优先在真实 `~/.openclaw` 上验证安装改动。
 - 对安装器的改动，默认走沙箱，因为 `docs/testing-sandbox.md` 明确要求隔离真实环境。
+- 默认不要修改你本机真实的 `~/.openclaw/openclaw.json`、`~/.openclaw/.env`、真实 workspace、真实 agent 注册或真实 gateway。
+- 如果任务确实需要动真实 OpenClaw 配置，必须先明确说明影响范围，并得到用户确认后再动手。
 - 只改文档、模板或 skill 文案时，可以不跑安装，但要核对路径、命名、示例和安全约束。
+
+## 真实环境保护
+- 把用户真实 `~/.openclaw` 视为生产环境，不要把仓库开发验证直接做在上面。
+- 安装器、自检、gateway、模板合并、agent 注册这类动作，默认先在沙箱验证。
+- 优先顺序：`bash scripts/bootstrap-test.sh` -> `bash scripts/sandbox-test.sh` -> `bash "$OPENCLAW_HOME/content-os-starter/scripts/check.sh"`。
+- 除非用户明确要求并确认风险，否则不要覆盖、重置、重建或清空真实 OpenClaw 配置。
+- 如果只需要验证文案、模板或静态结构，优先用只读检查，不要为了“确认一下”去碰真实环境。
 
 ## 路径约定
 - 默认 OpenClaw 主目录：`~/.openclaw`
-- 默认内容目录：`~/Documents/openclaw-content-os-data`
-- 默认 boss workspace：`~/.openclaw/workspace-content-os-boss`
-- 其他 workspace：`~/.openclaw/workspace-content-os-<role>`
-- agent id：`content-<role>`
+- 默认内容目录：`~/Documents/openclaw-content-os-data`，可被 `CONTENT_OS_HOME` 覆盖
+- 首次安装常见 boss workspace：`~/.openclaw/workspace-starter-boss`
+- 其他 workspace 通常是：`~/.openclaw/workspace-<当前前缀>-<role>`
+- agent id 通常是：`<当前前缀>-<role>`；首次安装常见为 `starter-<role>`
 沙箱模式常见环境变量：
 - `OPENCLAW_HOME`
 - `CONTENT_OS_HOME`
@@ -122,8 +132,8 @@
 - 文档和脚本大量使用 `kebab-case`
 - 示例：`sandbox-test.sh`、`provider-guide.md`、`public-safe-content-contract.md`
 agent / workspace / skill：
-- agent id：`content-boss`、`content-material` 这种 `content-<role>`
-- workspace 目录：`workspace-content-os-<role>`
+- agent id：优先写成 `<当前前缀>-<role>`，不要假设永远是 `content-*`
+- workspace 目录：优先写成 `workspace-<当前前缀>-<role>`；首次安装常见为 `workspace-starter-<role>`
 - skill 目录与 skill 名称通常用 `kebab-case`
 环境变量：
 - 统一使用 `UPPER_SNAKE_CASE`

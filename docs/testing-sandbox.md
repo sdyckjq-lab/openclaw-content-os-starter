@@ -4,12 +4,20 @@
 
 `让你在同一台电脑上测试 starter，但完全不碰你现有的 OpenClaw。`
 
+这里的“现有 OpenClaw”包括你真实的：
+
+- `~/.openclaw/openclaw.json`
+- `~/.openclaw/.env`
+- 已跑通的 agent / workspace
+- 正在使用的 gateway
+
 ## 核心原则
 
 沙箱测试必须满足这 4 条：
 
 - 不写入你真实的 `~/.openclaw`
 - 不覆盖你现在的 `openclaw.json`
+- 不修改你真实的 `.env`、agent 注册和 workspace
 - 不安装新的 daemon 到系统服务里
 - 不占用你现有 Gateway 的默认端口
 
@@ -127,9 +135,9 @@ openclaw dashboard
 ```text
 请做一次多 agent 调度自检：
 1. 不要把 6 步全都自己做完
-2. 先把素材整理交给 `content-material`
-3. 再把选题建议交给 `content-thinktank`
-4. 再把大纲或初稿交给 `content-creator`
+2. 先把素材整理交给 `<当前前缀>-material`
+3. 再把选题建议交给 `<当前前缀>-thinktank`
+4. 再把大纲或初稿交给 `<当前前缀>-creator`
 5. 如果工具调用失败，原样告诉我错误，不要编造“其他 agent 没配置”
 6. 最后用列表说明每一步实际是哪个 agent 完成的
 ```

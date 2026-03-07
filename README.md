@@ -138,14 +138,14 @@ Windows:
 - 安装 `content-basic` preset
 - 创建 5 个 starter agents
 - 复制 5 个 workspace 模板
-- 复制内容目录模板
+- 在 `CONTENT_OS_HOME`（默认 `~/Documents/openclaw-content-os-data`）准备内容目录模板
 - 安装 6 个 starter skills 到 `~/.openclaw/skills`
 - 自动开启并补全 `tools.agentToAgent`
 - 在新装环境里自动把当前前缀的 `-boss` 设为默认入口
 
 它不会做这些危险动作：
 
-- 不会写入真实 token
+- 不会把真实 token 写进这个公开仓库；如果你提供 API key，只会写到你本机私有的 `~/.openclaw/.env`
 - 不会替你开 Telegram
 - 不会覆盖你现有的自定义 agent
 - 不会偷偷删除你的配置
@@ -279,6 +279,17 @@ openclaw dashboard
 ```text
 帮我从一个公开链接开始，走一遍素材整理到初稿的大致流程。
 ```
+
+## Maintainer Checks
+
+如果你在维护这个仓库，推荐按这个顺序验证：
+
+1. 改 bootstrap 辅助逻辑时，先跑 `bash scripts/bootstrap-test.sh`
+2. 改安装流程时，再跑 `bash scripts/sandbox-test.sh`
+3. 沙箱安装完成后，再跑 `bash "$OPENCLAW_HOME/content-os-starter/scripts/check.sh"`
+
+默认不要把安装、自检、模板合并或 gateway 验证直接做在你真实的 `~/.openclaw` 上。
+把真实 OpenClaw 当成已经跑通的正式环境，开发验证优先走沙箱。
 
 ## What This Repo Optimizes For
 
