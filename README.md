@@ -142,6 +142,7 @@ Windows:
 - 安装 6 个 starter skills 到 `~/.openclaw/skills`
 - 自动开启并补全 `tools.agentToAgent`
 - 在新装环境里自动把当前前缀的 `-boss` 设为默认入口
+- 正常安装时自动尝试重启 gateway，让新配置立即生效
 - 可选：提示你输入 Telegram bot token，并把 Telegram 私聊入口直接绑定到当前 boss
 
 它不会做这些危险动作：

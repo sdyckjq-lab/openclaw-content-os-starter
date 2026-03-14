@@ -8,6 +8,7 @@ import { createInterface } from 'node:readline/promises';
 import { spawnSync } from 'node:child_process';
 import { buildEmptySecretActions } from './empty-secret-actions.mjs';
 import { analyzeExistingOpenClawState, shouldProbeExistingSetup } from './existing-openclaw.mjs';
+import { summarizeGatewayRestart } from './gateway-restart.mjs';
 import { selectOptionInteractively } from './interactive-menu.mjs';
 import { buildTemplateConfig, expandHomePath, readStarterManifest, resolveStarterManifest } from './starter-manifest.mjs';
 import { getPresetCatalogSkills, loadSkillCatalog, validatePresetSkillsAgainstCatalog } from './skill-catalog.mjs';
@@ -981,11 +982,31 @@ function gatewayStatus() {
   return result.status === 0;
 }
 
+function restartGatewayAfterInstall() {
+  if (sandboxMode) {
+    return summarizeGatewayRestart({
+      sandboxMode: true,
+      restartAttempted: false,
+      restartSucceeded: false,
+      gatewayRunning: false,
+    });
+  }
+
+  const restartResult = runOpenClawStatus(['gateway', 'restart']);
+  const gatewayRunning = gatewayStatus();
+  return summarizeGatewayRestart({
+    sandboxMode: false,
+    restartAttempted: true,
+    restartSucceeded: restartResult.status === 0,
+    gatewayRunning,
+  });
+}
+
 function readResolvedModel() {
   return tryOpenClaw(['models', 'status', '--plain']) || '';
 }
 
-function printSummary(setDefault, freshInstall, provider, telegramSetup) {
+function printSummary(setDefault, freshInstall, provider, telegramSetup, gatewayRestart) {
   const resolvedModel = readResolvedModel();
   const starterCount = starterAgents.length;
 
@@ -1035,6 +1056,10 @@ function printSummary(setDefault, freshInstall, provider, telegramSetup) {
 
   if (sandboxMode) {
     console.log(`- sandbox mode enabled (no daemon install, gateway port ${requestedGatewayPort || '18891'})`);
+  } else if (gatewayRestart?.status === 'restarted') {
+    console.log('- restarted the gateway automatically so the new config is live');
+  } else if (gatewayRestart?.status === 'manual-restart-needed') {
+    console.log('- could not restart the gateway automatically; you may need to do it once manually');
   }
 
   console.log(`- all ${starterCount} starter agents currently share one default model${resolvedModel ? `: ${resolvedModel}` : ''}`);
@@ -1042,8 +1067,11 @@ function printSummary(setDefault, freshInstall, provider, telegramSetup) {
 
   console.log('\nNext step:');
   console.log(`- Verify install: bash ${join(localStarterRoot, 'scripts', 'check.sh')}`);
-  if (gatewayStatus()) {
-    console.log(`- Open a NEW session in Control UI and switch to ${bossAgentId} if needed`);
+  if (gatewayRestart?.status === 'restarted' || gatewayRestart?.status === 'running') {
+    console.log('- Open Control UI directly: openclaw dashboard');
+    console.log(`- In a new session, switch to ${bossAgentId} if needed`);
+  } else if (gatewayRestart?.status === 'sandbox') {
+    console.log('- Start the isolated gateway in this sandbox before opening the dashboard');
   } else {
     console.log('- Start or restart the gateway: openclaw gateway restart');
   }
@@ -1086,4 +1114,5 @@ if (requestedModel) {
   runOpenClaw(['models', 'set', requestedModel]);
 }
 validateConfig();
-printSummary(setDefault, freshInstall.bootstrapped, freshInstall.provider, telegramSetup);
+const gatewayRestart = restartGatewayAfterInstall();
+printSummary(setDefault, freshInstall.bootstrapped, freshInstall.provider, telegramSetup, gatewayRestart);

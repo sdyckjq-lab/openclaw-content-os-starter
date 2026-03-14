@@ -45,6 +45,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 - 安装 6 个 starter skills
 - 自动补全 `tools.agentToAgent`
 - 在全新环境里把当前前缀的 `-boss` 设成默认入口
+- 正常安装时自动尝试重启 gateway，让新配置立即生效
 - 复制一个安装后自检命令到 `~/.openclaw/content-os-starter/scripts/check.sh`
 - 可选：提示你现在就接入 Telegram，或先跳过
 
