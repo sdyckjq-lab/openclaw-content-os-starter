@@ -81,6 +81,7 @@ bash scripts/sandbox-test.sh
 
 - 选择菜单支持键盘上下方向键，也支持直接看 `1`、`2`、`3` 编号后输入数字定位；按回车确认
 - 输入 API key 或 Telegram token 时，终端不会显示字符，这是正常的
+- 如果你只是想确认安装器能不能跑完，看到 `Sandbox install finished.` 后就可以直接退出
 
 这些都只写进沙箱目录，不碰你真实 OpenClaw。
 

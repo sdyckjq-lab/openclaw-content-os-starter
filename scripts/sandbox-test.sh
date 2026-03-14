@@ -35,6 +35,9 @@ cat <<EOF
 
 Sandbox install finished.
 
+If you only wanted to verify that the installer can run end-to-end,
+you can stop here and exit this terminal now.
+
 Next steps:
 1. Enter sandbox in this terminal:
    source "$ENTER_SCRIPT"

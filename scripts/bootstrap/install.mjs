@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
 import { createInterface } from 'node:readline/promises';
 import { spawnSync } from 'node:child_process';
+import { buildEmptySecretActions } from './empty-secret-actions.mjs';
 import { analyzeExistingOpenClawState, shouldProbeExistingSetup } from './existing-openclaw.mjs';
 import { selectOptionInteractively } from './interactive-menu.mjs';
 import { buildTemplateConfig, expandHomePath, readStarterManifest, resolveStarterManifest } from './starter-manifest.mjs';
@@ -334,6 +335,24 @@ async function chooseCustomCompatibilityInteractively() {
   });
 }
 
+async function handleEmptySecretInput({ label, canSkip }) {
+  return chooseMenuOption({
+    title: `${label} 现在是空的。`,
+    hint: '用上下方向键选择，也可以输入编号；回车确认，Ctrl+C 退出。',
+    options: buildEmptySecretActions({ label, canSkip }),
+  });
+}
+
+async function promptSecretWithRetry({ message, label, canSkip = false }) {
+  while (true) {
+    const value = await promptSecret(message);
+    if (value) return value;
+
+    const action = await handleEmptySecretInput({ label, canSkip });
+    if (action === 'skip') return '';
+  }
+}
+
 function ensureDir(path) {
   mkdirSync(path, { recursive: true });
 }
@@ -417,6 +436,7 @@ async function chooseTelegramInstallMode() {
     title: [
       '可选：现在把 Telegram 私聊入口接到当前 boss。',
       `默认会把 Telegram 绑定到 ${bossAgentId}，其他 agent 仍然走内部协作。`,
+      '如果你现在还没有 Telegram bot，直接选“先跳过”就行。',
     ].join('\n'),
     hint: '用上下方向键选择，也可以输入编号；回车确认，Ctrl+C 退出。',
     options: [
@@ -471,7 +491,11 @@ async function collectProviderSettings(provider) {
       printFreshInstallHelp();
       process.exit(1);
     }
-    apiKey = await promptSecret(`请输入 ${provider.label} 的 API key: `);
+    apiKey = await promptSecretWithRetry({
+      message: `请输入 ${provider.label} 的 API key: `,
+      label: 'API key',
+      canSkip: false,
+    });
   }
 
   if (!apiKey) {
@@ -634,9 +658,13 @@ async function collectOptionalTelegramSetup() {
     return { status: 'skipped', reason: 'interactive-skip' };
   }
 
-  const botToken = await promptSecret('请输入 Telegram bot token: ');
+  const botToken = await promptSecretWithRetry({
+    message: '请输入 Telegram bot token: ',
+    label: 'Telegram',
+    canSkip: true,
+  });
   if (!botToken) {
-    console.log('Telegram bot token 为空，已跳过这一步。');
+    console.log('已跳过 Telegram 接入，你后面随时都可以再配。');
     return { status: 'skipped', reason: 'empty-token' };
   }
 
