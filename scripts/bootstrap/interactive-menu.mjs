@@ -9,6 +9,15 @@ function moveSelection(currentIndex, direction, optionCount) {
   return currentIndex;
 }
 
+function resolveNumericSelection(value, optionCount) {
+  const normalized = String(value || '').trim();
+  if (!/^\d+$/.test(normalized)) return null;
+
+  const numericValue = Number(normalized);
+  if (numericValue < 1 || numericValue > optionCount) return null;
+  return numericValue - 1;
+}
+
 function formatMenu({ title, hint = '', options, selectedIndex = 0 }) {
   const lines = [];
 
@@ -18,8 +27,9 @@ function formatMenu({ title, hint = '', options, selectedIndex = 0 }) {
 
   for (const [index, option] of options.entries()) {
     const marker = index === selectedIndex ? '>' : ' ';
+    const number = `${index + 1}.`;
     const description = option.description ? ` - ${option.description}` : '';
-    lines.push(`${marker} ${option.label}${description}`);
+    lines.push(`${marker} ${number} ${option.label}${description}`);
   }
 
   return `${lines.join('\n')}\n`;
@@ -31,10 +41,14 @@ async function selectOptionInteractively({ title, hint = '', options, initialInd
   }
 
   let selectedIndex = Math.max(0, Math.min(initialIndex, options.length - 1));
+  let numericBuffer = '';
 
   function render() {
     output.write('\x1b[2J\x1b[H');
     output.write(formatMenu({ title, hint, options, selectedIndex }));
+    if (numericBuffer) {
+      output.write(`\n已输入编号: ${numericBuffer}\n`);
+    }
   }
 
   render();
@@ -60,6 +74,10 @@ async function selectOptionInteractively({ title, hint = '', options, initialInd
       }
 
       if (value === '\r' || value === '\n') {
+        const numericSelection = resolveNumericSelection(numericBuffer, options.length);
+        if (numericSelection !== null) {
+          selectedIndex = numericSelection;
+        }
         const selectedOption = options[selectedIndex];
         cleanup();
         resolve(selectedOption);
@@ -67,13 +85,32 @@ async function selectOptionInteractively({ title, hint = '', options, initialInd
       }
 
       if (value === '\u001b[A') {
+        numericBuffer = '';
         selectedIndex = moveSelection(selectedIndex, 'up', options.length);
         render();
         return;
       }
 
       if (value === '\u001b[B') {
+        numericBuffer = '';
         selectedIndex = moveSelection(selectedIndex, 'down', options.length);
+        render();
+        return;
+      }
+
+      if (value === '\u007f') {
+        if (!numericBuffer) return;
+        numericBuffer = numericBuffer.slice(0, -1);
+        render();
+        return;
+      }
+
+      if (/^\d$/.test(value)) {
+        numericBuffer += value;
+        const numericSelection = resolveNumericSelection(numericBuffer, options.length);
+        if (numericSelection !== null) {
+          selectedIndex = numericSelection;
+        }
         render();
       }
     }
@@ -82,4 +119,4 @@ async function selectOptionInteractively({ title, hint = '', options, initialInd
   });
 }
 
-export { formatMenu, moveSelection, selectOptionInteractively };
+export { formatMenu, moveSelection, resolveNumericSelection, selectOptionInteractively };

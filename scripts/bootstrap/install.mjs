@@ -320,6 +320,20 @@ async function chooseMenuOption({ title, hint = '', options }) {
   return options[0].value;
 }
 
+async function chooseCustomCompatibilityInteractively() {
+  return chooseMenuOption({
+    title: [
+      '请选择自定义接口兼容类型。',
+      '如果你不确定，优先选 OpenAI 兼容。',
+    ].join('\n'),
+    hint: '用上下方向键选择，也可以输入编号；回车确认，Ctrl+C 退出。',
+    options: [
+      { label: 'OpenAI 兼容', description: '大多数兼容接口默认走这个', value: 'openai' },
+      { label: 'Anthropic 兼容', description: '只有明确知道接口走 Anthropic 协议时再选', value: 'anthropic' },
+    ],
+  });
+}
+
 function ensureDir(path) {
   mkdirSync(path, { recursive: true });
 }
@@ -369,7 +383,7 @@ async function chooseProviderInteractively() {
       '推荐提供商（中国用户优先，先跑通最重要）。',
       '说明：Qwen Portal、MiniMax Portal 这类官方 OAuth 登录流，先装完 starter 后再按官方文档补登录，会更稳。',
     ].join('\n'),
-    hint: '用上下方向键选择，回车确认。',
+    hint: '用上下方向键选择，也可以输入编号；回车确认，Ctrl+C 退出。',
     options: [
       { label: 'MiniMax', description: '国内用户常用，官方支持 API key 与 Portal 两种路径', value: 'minimax' },
       { label: 'Moonshot / Kimi API', description: 'Kimi API 路线，适合直接输 key', value: 'moonshot' },
@@ -390,7 +404,7 @@ async function chooseFreshInstallMode() {
       '这个 starter 默认更适合已经装好 OpenClaw 的用户。',
       '你现在可以选择继续做首次初始化，或者先退出。',
     ].join('\n'),
-    hint: '用上下方向键选择，回车确认。',
+    hint: '用上下方向键选择，也可以输入编号；回车确认，Ctrl+C 退出。',
     options: [
       { label: '现在继续做首次初始化', description: '需要 provider + API key', value: 'bootstrap' },
       { label: '先跳过', description: '等你按官方流程配好 OpenClaw 后再回来', value: 'skip' },
@@ -404,7 +418,7 @@ async function chooseTelegramInstallMode() {
       '可选：现在把 Telegram 私聊入口接到当前 boss。',
       `默认会把 Telegram 绑定到 ${bossAgentId}，其他 agent 仍然走内部协作。`,
     ].join('\n'),
-    hint: '用上下方向键选择，回车确认。',
+    hint: '用上下方向键选择，也可以输入编号；回车确认，Ctrl+C 退出。',
     options: [
       { label: '现在接入 Telegram', description: '需要 bot token', value: 'configure' },
       { label: '先跳过', description: '后面再配', value: 'skip' },
@@ -448,8 +462,7 @@ async function collectProviderSettings(provider) {
       customModelId = await promptText('请输入默认模型 ID，例如 foo-large: ');
     }
     if (!requestedCustomCompatibility && interactive) {
-      const answer = await promptText('接口兼容类型是 openai 还是 anthropic？默认 openai，直接回车即可: ');
-      customCompatibility = normalizeCustomCompatibility(answer);
+      customCompatibility = await chooseCustomCompatibilityInteractively();
     }
   }
 
