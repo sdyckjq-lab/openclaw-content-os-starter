@@ -62,6 +62,11 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 1. 你要用哪家模型提供商
 2. 你的 API key 是什么
 
+小提醒：
+
+- 选择菜单现在支持键盘上下方向键，按回车确认
+- 输入 API key 或 Telegram token 时，终端不会显示字符，这是正常的
+
 现在 provider 菜单已经把中文用户更常用的路线放前面了：
 
 - `MiniMax`

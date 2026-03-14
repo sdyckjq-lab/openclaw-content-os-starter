@@ -7,6 +7,7 @@ import { homedir } from 'node:os';
 import { createInterface } from 'node:readline/promises';
 import { spawnSync } from 'node:child_process';
 import { analyzeExistingOpenClawState, shouldProbeExistingSetup } from './existing-openclaw.mjs';
+import { selectOptionInteractively } from './interactive-menu.mjs';
 import { buildTemplateConfig, expandHomePath, readStarterManifest, resolveStarterManifest } from './starter-manifest.mjs';
 import { getPresetCatalogSkills, loadSkillCatalog, validatePresetSkillsAgainstCatalog } from './skill-catalog.mjs';
 import { resolveStarterIdentity } from './starter-identity.mjs';
@@ -259,6 +260,7 @@ async function promptText(message) {
 async function promptSecret(message) {
   if (!interactive) return '';
 
+  process.stdout.write('为保护你的密钥，输入时不会显示字符，这是正常现象。\n');
   process.stdout.write(message);
   process.stdin.resume();
   process.stdin.setEncoding('utf8');
@@ -299,6 +301,23 @@ async function promptSecret(message) {
 
     process.stdin.on('data', onData);
   });
+}
+
+async function chooseMenuOption({ title, hint = '', options }) {
+  if (interactive) {
+    const selected = await selectOptionInteractively({
+      title,
+      hint,
+      options,
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    return selected.value;
+  }
+
+  if (options.length === 0) return '';
+  return options[0].value;
 }
 
 function ensureDir(path) {
@@ -342,62 +361,55 @@ function detectProviderFromEnvironment() {
 }
 
 async function chooseProviderInteractively() {
-  console.log('\n这是第一次安装 OpenClaw Content OS Starter。');
-  console.log('你只需要先准备 1 个 API key。5 个 agent 默认会先共用同一个模型。\n');
-  console.log('推荐提供商（中国用户优先，先跑通最重要）：');
-  console.log('1. MiniMax');
-  console.log('2. Moonshot / Kimi API');
-  console.log('3. Z.AI / GLM');
-  console.log('4. OpenRouter');
-  console.log('\n更多提供商（国际常用）：');
-  console.log('5. OpenAI');
-  console.log('6. Google Gemini');
-  console.log('7. Anthropic');
-  console.log('\n自定义接入：');
-  console.log('8. Custom API（OpenAI / Anthropic 兼容接口）');
-  console.log('\n说明：Qwen Portal、MiniMax Portal 这类官方 OAuth 登录流，先装完 starter 后再按官方文档补登录，会更稳。');
-
-  while (true) {
-    const answer = await promptText('输入 1 / 2 / 3 / 4 / 5 / 6 / 7 / 8: ');
-    if (answer === '1') return 'minimax';
-    if (answer === '2') return 'moonshot';
-    if (answer === '3') return 'zai';
-    if (answer === '4') return 'openrouter';
-    if (answer === '5') return 'openai';
-    if (answer === '6') return 'gemini';
-    if (answer === '7') return 'anthropic';
-    if (answer === '8') return 'custom';
-    console.log('输入无效，请重新输入。');
-  }
+  return chooseMenuOption({
+    title: [
+      '这是第一次安装 OpenClaw Content OS Starter。',
+      '你只需要先准备 1 个 API key。5 个 agent 默认会先共用同一个模型。',
+      '',
+      '推荐提供商（中国用户优先，先跑通最重要）。',
+      '说明：Qwen Portal、MiniMax Portal 这类官方 OAuth 登录流，先装完 starter 后再按官方文档补登录，会更稳。',
+    ].join('\n'),
+    hint: '用上下方向键选择，回车确认。',
+    options: [
+      { label: 'MiniMax', description: '国内用户常用，官方支持 API key 与 Portal 两种路径', value: 'minimax' },
+      { label: 'Moonshot / Kimi API', description: 'Kimi API 路线，适合直接输 key', value: 'moonshot' },
+      { label: 'Z.AI / GLM', description: 'GLM 路线，官方直接支持 zai-api-key', value: 'zai' },
+      { label: 'OpenRouter', description: '一个 key 聚合多个模型，适合想先跑通的人', value: 'openrouter' },
+      { label: 'OpenAI', description: '国际常用模型提供商', value: 'openai' },
+      { label: 'Google Gemini', description: '国际常用，适合 Google 生态用户', value: 'gemini' },
+      { label: 'Anthropic', description: '国际常用，强推理与长上下文', value: 'anthropic' },
+      { label: 'Custom API', description: '自定义 OpenAI / Anthropic 兼容接口', value: 'custom' },
+    ],
+  });
 }
 
 async function chooseFreshInstallMode() {
-  console.log('\n当前没有检测到可复用的 OpenClaw 配置。');
-  console.log('这个 starter 默认更适合已经装好 OpenClaw 的用户。');
-  console.log('你可以：');
-  console.log('1. 现在继续做首次初始化（需要 provider + API key）');
-  console.log('2. 先跳过，等你按官方流程配好 OpenClaw 后再回来');
-
-  while (true) {
-    const answer = await promptText('输入 1 或 2: ');
-    if (answer === '1') return 'bootstrap';
-    if (answer === '2') return 'skip';
-    console.log('输入无效，请重新输入。');
-  }
+  return chooseMenuOption({
+    title: [
+      '当前没有检测到可复用的 OpenClaw 配置。',
+      '这个 starter 默认更适合已经装好 OpenClaw 的用户。',
+      '你现在可以选择继续做首次初始化，或者先退出。',
+    ].join('\n'),
+    hint: '用上下方向键选择，回车确认。',
+    options: [
+      { label: '现在继续做首次初始化', description: '需要 provider + API key', value: 'bootstrap' },
+      { label: '先跳过', description: '等你按官方流程配好 OpenClaw 后再回来', value: 'skip' },
+    ],
+  });
 }
 
 async function chooseTelegramInstallMode() {
-  console.log('\n可选：现在把 Telegram 私聊入口接到当前 boss。');
-  console.log(`默认会把 Telegram 绑定到 ${bossAgentId}，其他 agent 仍然走内部协作。`);
-  console.log('1. 现在接入 Telegram（需要 bot token）');
-  console.log('2. 先跳过，后面再配');
-
-  while (true) {
-    const answer = await promptText('输入 1 或 2: ');
-    if (answer === '1') return 'configure';
-    if (answer === '2') return 'skip';
-    console.log('输入无效，请重新输入。');
-  }
+  return chooseMenuOption({
+    title: [
+      '可选：现在把 Telegram 私聊入口接到当前 boss。',
+      `默认会把 Telegram 绑定到 ${bossAgentId}，其他 agent 仍然走内部协作。`,
+    ].join('\n'),
+    hint: '用上下方向键选择，回车确认。',
+    options: [
+      { label: '现在接入 Telegram', description: '需要 bot token', value: 'configure' },
+      { label: '先跳过', description: '后面再配', value: 'skip' },
+    ],
+  });
 }
 
 function printFreshInstallHelp() {

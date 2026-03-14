@@ -77,6 +77,11 @@ bash scripts/sandbox-test.sh
 - API key 是什么
 - 要不要现在顺手接入 Telegram（可跳过）
 
+小提醒：
+
+- 选择菜单支持键盘上下方向键，按回车确认
+- 输入 API key 或 Telegram token 时，终端不会显示字符，这是正常的
+
 这些都只写进沙箱目录，不碰你真实 OpenClaw。
 
 ### 第 2 步：进入沙箱环境
