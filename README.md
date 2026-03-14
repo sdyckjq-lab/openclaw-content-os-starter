@@ -142,11 +142,12 @@ Windows:
 - 安装 6 个 starter skills 到 `~/.openclaw/skills`
 - 自动开启并补全 `tools.agentToAgent`
 - 在新装环境里自动把当前前缀的 `-boss` 设为默认入口
+- 可选：提示你输入 Telegram bot token，并把 Telegram 私聊入口直接绑定到当前 boss
 
 它不会做这些危险动作：
 
 - 不会把真实 token 写进这个公开仓库；如果你提供 API key，只会写到你本机私有的 `~/.openclaw/.env`
-- 不会替你开 Telegram
+- 不会替你去申请 Telegram bot；如果你选择接入 Telegram，只会把你提供的 token 写到你本机私有 `.env`
 - 不会覆盖你现有的自定义 agent
 - 不会偷偷删除你的配置
 
@@ -248,6 +249,22 @@ OPENCLAW_CONTENT_OS_PROVIDER=openai \
 OPENAI_API_KEY="your-key" \
 OPENCLAW_CONTENT_OS_MODEL="openai/gpt-5.2" \
 bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
+```
+
+如果你想在安装时顺手接入 Telegram，也可以这样：
+
+```bash
+OPENCLAW_CONTENT_OS_PROVIDER=minimax \
+MINIMAX_API_KEY="your-key" \
+OPENCLAW_CONTENT_OS_TELEGRAM_BOT_TOKEN="123456:telegram-token" \
+bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
+```
+
+如果你明确想跳过 Telegram 提示：
+
+```bash
+OPENCLAW_CONTENT_OS_SKIP_TELEGRAM=1 \
+bash scripts/install.sh
 ```
 
 如果你要接入自定义兼容接口，也支持：

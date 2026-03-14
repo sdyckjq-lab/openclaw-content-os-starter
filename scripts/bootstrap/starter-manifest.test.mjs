@@ -70,6 +70,8 @@ test('builds template config from preset manifest', () => {
   assert.match(template, /content-boss/);
   assert.match(template, /content-thinktank/);
   assert.match(template, /"content-tech"/);
+  assert.match(template, /accountId: "content-telegram"/);
+  assert.match(template, /\$\{OPENCLAW_CONTENT_OS_CONTENT_TELEGRAM_BOT_TOKEN\}/);
 });
 
 test('falls back to stored manifest when preset file is unavailable', () => {

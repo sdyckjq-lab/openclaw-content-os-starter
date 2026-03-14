@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildTelegramAccountId, buildTelegramEnvName } from './telegram-channel.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -222,6 +223,8 @@ function expandHomePath(path) {
 
 function buildTemplateConfig(starterManifest) {
   const prefixLabel = humanizeSlug(starterManifest.agentPrefix) || humanizeSlug(starterManifest.presetKey) || 'Starter';
+  const telegramAccountId = buildTelegramAccountId(starterManifest.agentPrefix);
+  const telegramEnvName = buildTelegramEnvName(starterManifest.agentPrefix);
   const lines = [
     '// Copy only the sections you need into ~/.openclaw/openclaw.json.',
     '// This file is generated from your current starter install settings.',
@@ -278,14 +281,14 @@ function buildTemplateConfig(starterManifest) {
   lines.push('  // bindings: [');
   lines.push('  //   {');
   lines.push(`  //     agentId: "${starterManifest.bossId}",`);
-  lines.push('  //     match: { channel: "telegram", accountId: "main" },');
+  lines.push(`  //     match: { channel: "telegram", accountId: "${telegramAccountId}" },`);
   lines.push('  //   },');
   lines.push('  // ],');
   lines.push('  // channels: {');
   lines.push('  //   telegram: {');
   lines.push('  //     accounts: {');
-  lines.push('  //       main: {');
-  lines.push('  //         botToken: "${TELEGRAM_BOT_TOKEN}",');
+  lines.push(`  //       "${telegramAccountId}": {`);
+  lines.push(`  //         botToken: "\${${telegramEnvName}}",`);
   lines.push('  //         dmPolicy: "pairing",');
   lines.push('  //       },');
   lines.push('  //     },');

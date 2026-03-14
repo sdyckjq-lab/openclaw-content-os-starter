@@ -69,14 +69,14 @@
   // bindings: [
   //   {
   //     agentId: "starter-boss",
-  //     match: { channel: "telegram", accountId: "main" },
+  //     match: { channel: "telegram", accountId: "starter-telegram" },
   //   },
   // ],
   // channels: {
   //   telegram: {
   //     accounts: {
-  //       main: {
-  //         botToken: "${TELEGRAM_BOT_TOKEN}",
+  //       "starter-telegram": {
+  //         botToken: "${OPENCLAW_CONTENT_OS_STARTER_TELEGRAM_BOT_TOKEN}",
   //         dmPolicy: "pairing",
   //       },
   //     },

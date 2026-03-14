@@ -75,6 +75,7 @@ bash scripts/sandbox-test.sh
 
 - provider 选哪个
 - API key 是什么
+- 要不要现在顺手接入 Telegram（可跳过）
 
 这些都只写进沙箱目录，不碰你真实 OpenClaw。
 

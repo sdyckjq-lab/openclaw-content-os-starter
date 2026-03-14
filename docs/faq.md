@@ -118,6 +118,17 @@ starter 的默认路径是：
 
 所以 starter 默认先推荐 Control UI。
 
+## 安装器现在能不能顺手接入 Telegram
+
+可以，但仍然是可选项。
+
+现在安装器会给你两个选择：
+
+- 现在输入 Telegram bot token，直接把私聊入口接到当前 `boss`
+- 先跳过，等本地工作流跑顺了再配
+
+这样你不用手改 `bindings` 和 `channels`，但也不会被强制卡在 Telegram 这一步。
+
 ## 我怎么完全隔离测试，不碰我现有的 OpenClaw
 
 看：`docs/testing-sandbox.md`

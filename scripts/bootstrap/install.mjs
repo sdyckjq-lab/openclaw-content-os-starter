@@ -10,6 +10,12 @@ import { analyzeExistingOpenClawState, shouldProbeExistingSetup } from './existi
 import { buildTemplateConfig, expandHomePath, readStarterManifest, resolveStarterManifest } from './starter-manifest.mjs';
 import { getPresetCatalogSkills, loadSkillCatalog, validatePresetSkillsAgainstCatalog } from './skill-catalog.mjs';
 import { resolveStarterIdentity } from './starter-identity.mjs';
+import {
+  buildTelegramAccountId,
+  buildTelegramEnvName,
+  mergeTelegramAccounts,
+  mergeTelegramBindings,
+} from './telegram-channel.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -36,6 +42,8 @@ const requestedWorkspacePrefix = getArgValue('--workspace-prefix') || process.en
 const requestedCustomBaseUrl = getArgValue('--custom-base-url') || process.env.OPENCLAW_CONTENT_OS_CUSTOM_BASE_URL || '';
 const requestedCustomModelId = getArgValue('--custom-model-id') || process.env.OPENCLAW_CONTENT_OS_CUSTOM_MODEL_ID || '';
 const requestedCustomCompatibility = normalizeCustomCompatibility(getArgValue('--custom-compatibility') || process.env.OPENCLAW_CONTENT_OS_CUSTOM_COMPATIBILITY || '');
+const requestedTelegramAccountId = getArgValue('--telegram-account-id') || process.env.OPENCLAW_CONTENT_OS_TELEGRAM_ACCOUNT_ID || '';
+const requestedSkipTelegram = process.argv.includes('--skip-telegram') || process.env.OPENCLAW_CONTENT_OS_SKIP_TELEGRAM === '1';
 const interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY);
 
 const providerChoices = {
@@ -147,6 +155,13 @@ const bossAgentId = starterManifest.bossId;
 const starterSkills = starterManifest.sharedSkills;
 const skillCatalog = loadSkillCatalog();
 const presetCatalogSkills = getPresetCatalogSkills(starterManifest, skillCatalog);
+const telegramAccountId = buildTelegramAccountId(starterManifest.agentPrefix, requestedTelegramAccountId);
+const telegramEnvName = buildTelegramEnvName(starterManifest.agentPrefix);
+const requestedTelegramBotToken = getArgValue('--telegram-bot-token')
+  || process.env.OPENCLAW_CONTENT_OS_TELEGRAM_BOT_TOKEN
+  || process.env[telegramEnvName]
+  || process.env.TELEGRAM_BOT_TOKEN
+  || '';
 
 function ensureCommand(command) {
   const result = spawnSync(command, ['--help'], { stdio: 'ignore' });
@@ -371,6 +386,20 @@ async function chooseFreshInstallMode() {
   }
 }
 
+async function chooseTelegramInstallMode() {
+  console.log('\n可选：现在把 Telegram 私聊入口接到当前 boss。');
+  console.log(`默认会把 Telegram 绑定到 ${bossAgentId}，其他 agent 仍然走内部协作。`);
+  console.log('1. 现在接入 Telegram（需要 bot token）');
+  console.log('2. 先跳过，后面再配');
+
+  while (true) {
+    const answer = await promptText('输入 1 或 2: ');
+    if (answer === '1') return 'configure';
+    if (answer === '2') return 'skip';
+    console.log('输入无效，请重新输入。');
+  }
+}
+
 function printFreshInstallHelp() {
   console.error('No reusable OpenClaw setup detected.');
   console.error('This starter now defaults to reusing an existing OpenClaw config and model when available.');
@@ -540,6 +569,59 @@ async function ensureFreshMachineOnboard() {
   }
 
   return { bootstrapped: true, provider };
+}
+
+async function collectOptionalTelegramSetup() {
+  const currentBindings = configGet('bindings', []);
+  const currentAccounts = configGet('channels.telegram.accounts', {});
+  const bossTelegramBinding = Array.isArray(currentBindings)
+    ? currentBindings.find((binding) => binding?.agentId === bossAgentId && binding?.match?.channel === 'telegram')
+    : null;
+
+  if (requestedSkipTelegram) {
+    return { status: 'skipped', reason: 'requested' };
+  }
+
+  if (requestedTelegramBotToken) {
+    return {
+      status: 'configure',
+      accountId: telegramAccountId,
+      envName: telegramEnvName,
+      botToken: requestedTelegramBotToken,
+      source: 'provided',
+    };
+  }
+
+  if (bossTelegramBinding || currentAccounts?.[telegramAccountId]) {
+    return {
+      status: 'existing',
+      accountId: bossTelegramBinding?.match?.accountId || telegramAccountId,
+      reason: 'already-configured',
+    };
+  }
+
+  if (!interactive) {
+    return { status: 'skipped', reason: 'non-interactive' };
+  }
+
+  const mode = await chooseTelegramInstallMode();
+  if (mode === 'skip') {
+    return { status: 'skipped', reason: 'interactive-skip' };
+  }
+
+  const botToken = await promptSecret('请输入 Telegram bot token: ');
+  if (!botToken) {
+    console.log('Telegram bot token 为空，已跳过这一步。');
+    return { status: 'skipped', reason: 'empty-token' };
+  }
+
+  return {
+    status: 'configure',
+    accountId: telegramAccountId,
+    envName: telegramEnvName,
+    botToken,
+    source: 'prompt',
+  };
 }
 
 function copyIfNeeded(src, dst) {
@@ -723,6 +805,30 @@ function installSkills() {
   }
 }
 
+function installTelegramChannel(telegramSetup) {
+  if (!telegramSetup || telegramSetup.status !== 'configure') return telegramSetup;
+
+  process.env[telegramSetup.envName] = telegramSetup.botToken;
+  upsertEnvValue(telegramSetup.envName, telegramSetup.botToken);
+
+  const nextAccounts = mergeTelegramAccounts(
+    configGet('channels.telegram.accounts', {}),
+    telegramSetup.accountId,
+    telegramSetup.envName,
+  );
+  const nextBindings = mergeTelegramBindings(
+    configGet('bindings', []),
+    bossAgentId,
+    telegramSetup.accountId,
+  );
+
+  configSet('channels.telegram.accounts', nextAccounts);
+  configSet('bindings', nextBindings);
+  console.log(`telegram configured: ${telegramSetup.accountId} -> ${bossAgentId}`);
+
+  return telegramSetup;
+}
+
 function installLocalHelperScripts() {
   copyDirContents(join(repoRoot, 'scripts'), join(localStarterRoot, 'scripts'));
 }
@@ -826,7 +932,7 @@ function readResolvedModel() {
   return tryOpenClaw(['models', 'status', '--plain']) || '';
 }
 
-function printSummary(setDefault, freshInstall, provider) {
+function printSummary(setDefault, freshInstall, provider, telegramSetup) {
   const resolvedModel = readResolvedModel();
   const starterCount = starterAgents.length;
 
@@ -865,6 +971,15 @@ function printSummary(setDefault, freshInstall, provider) {
     console.log(`- saved your ${provider.label} API key reference in ${globalEnvPath}`);
   }
 
+  if (telegramSetup?.status === 'configure') {
+    console.log(`- saved your Telegram bot token reference in ${globalEnvPath} (${telegramSetup.envName})`);
+    console.log(`- routed Telegram account ${telegramSetup.accountId} to ${bossAgentId}`);
+  } else if (telegramSetup?.status === 'existing') {
+    console.log('- kept your existing Telegram channel config unchanged');
+  } else {
+    console.log('- left Telegram unconfigured for now');
+  }
+
   if (sandboxMode) {
     console.log(`- sandbox mode enabled (no daemon install, gateway port ${requestedGatewayPort || '18891'})`);
   }
@@ -880,9 +995,14 @@ function printSummary(setDefault, freshInstall, provider) {
     console.log('- Start or restart the gateway: openclaw gateway restart');
   }
   console.log('- Then send: 请按这个 starter 的默认流程，帮我规划一篇内容，从素材整理开始。');
+  if (telegramSetup?.status === 'configure') {
+    console.log(`- In Telegram, open your bot and send /start. If pairing asks for approval, confirm it in OpenClaw.`);
+  }
 
   console.log('\nOptional later:');
-  console.log('- Add Telegram or other channels after the local workflow works');
+  if (telegramSetup?.status !== 'configure') {
+    console.log('- Add Telegram or other channels after the local workflow works');
+  }
   console.log('- Review the public template at ~/.openclaw/openclaw.content-os.template.json5');
 }
 
@@ -908,8 +1028,9 @@ installAgents();
 updateAgentToAgentAccess();
 updateStarterSubagentAllowlist();
 const setDefault = maybeSetDefaultBoss();
+const telegramSetup = installTelegramChannel(await collectOptionalTelegramSetup());
 if (requestedModel) {
   runOpenClaw(['models', 'set', requestedModel]);
 }
 validateConfig();
-printSummary(setDefault, freshInstall.bootstrapped, freshInstall.provider);
+printSummary(setDefault, freshInstall.bootstrapped, freshInstall.provider, telegramSetup);

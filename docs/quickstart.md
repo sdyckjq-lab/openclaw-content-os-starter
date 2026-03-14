@@ -46,11 +46,12 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 - 自动补全 `tools.agentToAgent`
 - 在全新环境里把当前前缀的 `-boss` 设成默认入口
 - 复制一个安装后自检命令到 `~/.openclaw/content-os-starter/scripts/check.sh`
+- 可选：提示你现在就接入 Telegram，或先跳过
 
 ## 第 3 步：安装器不会做什么
 
 - 不会把你的真实密钥写进这个公开仓库；如果你提供 API key，只会写到本机私有的 `~/.openclaw/.env`
-- 不会自动接入 Telegram
+- 不会替你申请 Telegram bot；如果你选择接入 Telegram，只会把 token 写到本机私有 `.env`
 - 不会自动帮你发布内容
 - 不会覆盖你现有的复杂自定义配置
 
@@ -79,6 +80,15 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content
 ```bash
 OPENCLAW_CONTENT_OS_PROVIDER=minimax \
 MINIMAX_API_KEY="your-key" \
+bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
+```
+
+如果你已经有 Telegram bot token，也可以顺手一起接入：
+
+```bash
+OPENCLAW_CONTENT_OS_PROVIDER=minimax \
+MINIMAX_API_KEY="your-key" \
+OPENCLAW_CONTENT_OS_TELEGRAM_BOT_TOKEN="123456:telegram-token" \
 bash <(curl -fsSL https://raw.githubusercontent.com/sdyckjq-lab/openclaw-content-os-starter/main/scripts/install.sh)
 ```
 
@@ -205,6 +215,17 @@ OpenClaw 官方支持它们。
 ### 我不想一开始就开自动化
 
 完全正确。`cron` 和 `bindings` 都是可选项。
+
+### 安装器现在会不会强制我配 Telegram
+
+不会。
+
+安装器现在只会给你一个可选步骤：
+
+1. 现在输入 bot token，直接把 Telegram 私聊入口绑定到 `boss`
+2. 或者输入跳过，先只走本地 Control UI
+
+如果你现在还没有 bot，直接跳过就行。
 
 ## 下一步
 
