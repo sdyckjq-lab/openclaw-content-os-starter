@@ -1,107 +1,136 @@
 # 下次对话速览
 
-## 这是什么项目
+这份文档只回答一个问题：
 
-这是一个公开版 `OpenClaw Content OS Starter`。
+`如果我开一个新对话，或者换一个新的 AI 工具，最短的接手路径是什么？`
 
-目标是：
+## 先读顺序
 
-- 让新手一键装好
-- 自动得到 5 个内容工作流 agent
-- 默认用 1 个 provider、1 个 key、1 个模型先跑通
-- 支持完全隔离的 sandbox 测试
-- 绝不碰用户真实 `~/.openclaw`
+请新 AI 进入仓库后，按这个顺序读：
 
-## 当前状态
+1. `USER.md`
+2. `AGENTS.md`
+3. `docs/project-map.md`
+4. `docs/presets-overview.md`
+5. `docs/maintainer-playbook.md`
+6. `docs/future-direction.md`
+7. `docs/reference-projects.md`
 
-- GitHub 仓库已发布并可用
-- 一键安装、fresh install、自检、sandbox 测试都已做好
-- 默认入口会自动落到当前前缀的 `-boss`
-- starter 多 agent 调度问题已补强
-- 当前最新提交：`e2811de` `fix: enable starter agent delegation`
+如果只是想快速知道怎么安装和怎么测，再补读：
 
-## 已知关键点
+8. `README.md`
+9. `docs/quickstart.md`
+10. `docs/testing-sandbox.md`
 
-- 聊天里的 `/agents` 不是“配置 agent 列表”，而是“当前会话绑定 agent”
-- `sessions_send` 需要的是 `sessionKey`，不是 `agentId`
-- 跨 agent 调度时，当前 boss agent（通常是 `<当前前缀>-boss`）应优先用 `sessions_spawn(agentId=...)`
-- 如果调度失败，才回退成 boss 自己直接调用 shared skills
+## 当前项目是什么
 
-## 明天优先做什么
+这是一个公开版 `OpenClaw 多 agent 场景化 starter`。
 
-先不要乱改代码，先复测。
+当前不是多场景大仓库。
+当前先以 `content-basic` 作为第一个真实可安装的参考实现。
 
-### 1. 更新代码
+## 当前已经稳定具备的能力
 
-```bash
-cd ~/Desktop/openclaw-content-os-starter && git pull
-```
+- 一键安装
+- 一键自检
+- 沙箱隔离测试
+- 5 个默认角色
+- 6 个 starter skills
+- 可选 Telegram 接入
+- 正常安装后自动尝试重启 gateway
 
-### 2. 进入当前主测试沙箱
+## 当前最重要的项目判断
 
-```bash
-SANDBOX_DIR="$HOME/Documents/openclaw-content-os-sandbox-20260306-223109"
-source "$SANDBOX_DIR/enter-sandbox.sh"
-source "$OPENCLAW_HOME/.env"
-export ZAI_API_KEY
-```
+以后看这个仓库，默认不要把它理解成：
 
-### 3. 启动沙箱 gateway
+- 海量 agent 模板仓库
+- 通用 prompt 集合
+- 传统 Web 工程
 
-```bash
-openclaw gateway run --bind loopback --port "$OPENCLAW_CONTENT_OS_GATEWAY_PORT"
-```
+更准确的理解应该是：
 
-### 4. 另开一个终端打开 dashboard
+- 用户先选一个场景
+- 跑一条安装命令
+- 直接得到一套可用的多 agent 系统
 
-```bash
-SANDBOX_DIR="$HOME/Documents/openclaw-content-os-sandbox-20260306-223109"
-source "$SANDBOX_DIR/enter-sandbox.sh"
-source "$OPENCLAW_HOME/.env"
-export ZAI_API_KEY
+## 维护时默认的测试路径
 
-openclaw dashboard
-```
+默认顺序：
 
-### 5. 新建一个全新会话，发这句
+1. `bash scripts/bootstrap-test.sh`
+2. `bash scripts/sandbox-test.sh`
+3. 沙箱里跑 `bash "$OPENCLAW_HOME/content-os-starter/scripts/check.sh"`
+
+默认不要动真实 `~/.openclaw` 做安装验证。
+
+## 未来方向
+
+未来最重要的方向不是卷 agent 数量。
+
+而是：
+
+- 多场景 preset
+- 一键安装
+- 新手可用
+- 尽量复用成熟项目
+- 不重复造轮子
+
+最关键的未来说明看：
+
+- `docs/future-direction.md`
+
+## 外部参考项目
+
+当前未来优先参考的两个项目是：
+
+- `awesome-openclaw-agents`
+- `agency-agents`
+
+以后如果 AI 要扩角色、扩场景、补模板，默认先判断能不能从这两个项目里局部借鉴或直接拿现成结构，而不是先自己发明。
+
+具体规则看：
+
+- `docs/reference-projects.md`
+- `docs/local-reference-rules.md`
+
+## 交给新 AI 的推荐提示词
+
+如果你要把任务交给新的 AI 工具，最推荐直接发这段：
 
 ```text
-请做一次多 agent 调度自检：
-1. 不要把 6 步全都自己做完
-2. 先把素材整理交给 `<当前前缀>-material`
-3. 再把选题建议交给 `<当前前缀>-thinktank`
-4. 再把大纲或初稿交给 `<当前前缀>-creator`
-5. 如果工具调用失败，原样告诉我错误，不要编造“其他 agent 没配置”
-6. 最后用列表说明每一步实际是哪个 agent 完成的
-```
+请先阅读这个仓库里的这些文件：
+1. USER.md
+2. AGENTS.md
+3. docs/project-map.md
+4. docs/presets-overview.md
+5. docs/maintainer-playbook.md
+6. docs/future-direction.md
+7. docs/reference-projects.md
 
-## 如果明天要让别的 AI 接手
-
-直接把下面这段发给它：
-
-```text
-请先阅读 `~/Desktop/openclaw-content-os-starter/docs/next-chat-brief.md`。
-
-我的目标：把这个 OpenClaw 内容创作 starter 继续维护成适合小白的一键安装项目。
+项目定位：
+这是一个面向新手的 OpenClaw 多 agent 场景化 starter。
+当前默认 preset 是 content-basic。
+目标不是卷 agent 数量，而是让用户选一个场景后能一键安装并直接可用。
 
 硬要求：
-1. 所有交流都用简体中文
-2. 一定要新手友好
-3. 一定要脱敏
-4. 绝对不要动我真实的 `~/.openclaw`
-5. 测试只能在 sandbox 里进行
+1. 全程用简体中文
+2. 默认把维护者当零基础用户
+3. 优先最小修改
+4. 不要动真实 ~/.openclaw 做安装验证
+5. 先复用已有模板、skills、角色说明
+6. 优先参考成熟项目，避免重复造轮子
 
-先检查：
-- 仓库状态
-- 当前 sandbox 是否还可用
-- 当前 boss agent（通常是 `<当前前缀>-boss`）的多 agent 调度是否已经跑通
+重点参考外部项目：
+- awesome-openclaw-agents
+- agency-agents
 
-如果没跑通，优先修最小问题，不要大改架构。
+如果要做扩展，请先说明：
+1. 当前仓库里哪些能复用
+2. 外部成熟项目里哪些值得借
+3. 最推荐先做的最小下一步是什么
+4. 应该怎么验证
 ```
 
-## 不要做的事
+## 一句话总结
 
-- 不要删除用户真实 `~/.openclaw`
-- 不要停止本地正式 gateway
-- 不要把临时验证问题误判成 starter 完全失效
-- 不要一上来重构整个项目
+`以后不管换哪个 AI，先读这 7 份文件，它就应该能比较快理解这个项目现在是什么、未来要往哪走。`

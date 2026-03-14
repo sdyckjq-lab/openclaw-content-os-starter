@@ -309,6 +309,17 @@ openclaw dashboard
 默认不要把安装、自检、模板合并或 gateway 验证直接做在你真实的 `~/.openclaw` 上。
 把真实 OpenClaw 当成已经跑通的正式环境，开发验证优先走沙箱。
 
+## Maintainer / AI Docs
+
+如果你是维护者，或者你准备把任务交给新的 AI 工具，优先看这些文档：
+
+- `docs/project-map.md`
+- `docs/presets-overview.md`
+- `docs/maintainer-playbook.md`
+- `docs/future-direction.md`
+- `docs/reference-projects.md`
+- `docs/next-chat-brief.md`
+
 ## What This Repo Optimizes For
 
 旧版 starter 的问题是：

@@ -13,12 +13,18 @@
 优先参考：
 - `README.md`
 - `docs/quickstart.md`
+- `docs/project-map.md`
+- `docs/presets-overview.md`
+- `docs/maintainer-playbook.md`
+- `docs/future-direction.md`
+- `docs/reference-projects.md`
 - `docs/testing-sandbox.md`
 - `docs/maintainer-safety.md`
 - `docs/security.md`
 - `docs/roadmap.md`
 - `docs/local-reference-rules.md`
 - `docs/agency-agents-learning-checklist.md`
+- `docs/next-chat-brief.md`
 - `docs/public-safe-content-contract.md`
 - `scripts/install.sh`
 - `scripts/check.sh`
@@ -191,7 +197,12 @@ agent / workspace / skill：
 - 改安装流程：优先看 `scripts/bootstrap/install.mjs`
 - 改自检流程：优先看 `scripts/bootstrap/check.mjs`
 - 规划后续扩展路线：优先看 `docs/roadmap.md`
+- 快速了解项目全貌：优先看 `docs/project-map.md`
+- 看当前 preset 和扩展方式：优先看 `docs/presets-overview.md`
+- 看维护动作与验证路径：优先看 `docs/maintainer-playbook.md`
+- 看未来方向与阶段规划：优先看 `docs/future-direction.md`
 - 参考外部或本地成熟项目：优先看 `docs/local-reference-rules.md`
+- 看两个重点参考项目该怎么借：优先看 `docs/reference-projects.md`
 - 参考 `agency-agents` 的学习顺序：优先看 `docs/agency-agents-learning-checklist.md`
 - 改公开配置示例：改 `templates/openclaw.json5.template`
 - 改内容系统默认文风：改 `templates/content-system/config/style-guide.md`
